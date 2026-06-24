@@ -1,0 +1,78 @@
+# =========================================================================
+# Git Ignore Rules for SAATHI SBI Companion App
+# =========================================================================
+
+# Secrets and Credentials
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+backend/.env
+frontend/.env
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+jspm_packages/
+web_modules/
+
+# Python Virtual Environments & Packages
+venv/
+.venv/
+env/
+ENV/
+pyvenv.cfg
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Python Caches & Compiled Bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipydb_core/
+
+# Frontend Build Output
+dist/
+frontend/dist/
+tmp/
+out/
+.next/
+.nuxt/
+.svelte-kit/
+
+# IDEs & System Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
