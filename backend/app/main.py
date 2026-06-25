@@ -570,12 +570,20 @@ def get_nudges(user_id: str):
                 pass
         if not txs:
             txs = mock_transactions_db.get(user_id, [])
+            
         if not txs:
-            txs = [
-                {"amount": 75000.0, "category": "Salary", "merchant": "SBI Corp Payroll"},
-                {"amount": -1499.0, "category": "Dining", "merchant": "Zomato"},
-                {"amount": -4500.0, "category": "Shopping", "merchant": "Amazon India"}
-            ]
+            nudge_record = {
+                "id": "welcome-nudge",
+                "user_id": user_id,
+                "type": "savings_tip",
+                "message": "Welcome to SAATHI! Your transaction ledger is empty. Go to 'My Health' to simulate sandbox spends and get active money nudges.",
+                "sent_at": datetime.utcnow().isoformat(),
+                "is_read": False,
+                "channel": "in-app"
+            }
+            mock_nudges_db[user_id] = [nudge_record]
+            save_mock_db()
+            return NudgeListResponse(nudges=[Nudge(**nudge_record)])
         
         nudge_data = nudge_agent.generate_nudge(txs)
         nudge_record = {
@@ -598,17 +606,8 @@ def get_nudges(user_id: str):
         Nudge(
             id="mock-1",
             user_id=user_id,
-            type="budget_alert",
-            message="You spent ₹8,000 on dining this month. Start a recurring deposit to save more!",
-            sent_at=datetime.utcnow().isoformat(),
-            is_read=False,
-            channel="in-app"
-        ),
-        Nudge(
-            id="mock-2",
-            user_id=user_id,
             type="savings_tip",
-            message="Your salary was credited. Park ₹5,000 in SBI FD for 7% returns.",
+            message="Welcome to SAATHI! Start simulating transactions in the profile sandbox to see active nudges.",
             sent_at=datetime.utcnow().isoformat(),
             is_read=False,
             channel="in-app"
@@ -640,18 +639,9 @@ async def generate_nudge(user_id: str):
         except Exception as e:
             logger.error(f"Error retrieving transactions: {str(e)}")
             
-    # If no transactions exist, use typical mock transactions to analyze
-    if not transactions:
-        if user_id in mock_transactions_db:
-            transactions = mock_transactions_db[user_id]
-        else:
-            transactions = [
-                {"amount": -2500, "category": "Dining", "merchant": "Zomato", "timestamp": "2026-06-24"},
-                {"amount": -4000, "category": "Shopping", "merchant": "Amazon", "timestamp": "2026-06-23"},
-                {"amount": -1200, "category": "Transport", "merchant": "Uber", "timestamp": "2026-06-22"},
-                {"amount": 50000, "category": "Salary", "merchant": "SBI Corp Payroll", "timestamp": "2026-06-01"},
-                {"amount": -3000, "category": "Dining", "merchant": "Starbucks", "timestamp": "2026-06-21"}
-            ]
+    # If no transactions exist, check mock_transactions_db
+    if not transactions and user_id in mock_transactions_db:
+        transactions = mock_transactions_db[user_id]
         
     # 2. Call LangChain NudgeAgent
     nudge_data = nudge_agent.generate_nudge(transactions)
@@ -773,22 +763,17 @@ def get_recommendations(user_id: str):
     except Exception as e:
         logger.error(f"Error auto-generating fallback recommendations: {str(e)}")
 
-    # Hardcoded safety fallback recommendations
+    # Dynamic safety fallback recommendations based on registered demographics
+    income = 50000
+    if user_id in mock_users_db:
+        income = mock_users_db[user_id].get("financial_profile", {}).get("income", 50000)
     mock_recs = [
         Recommendation(
             id="rec-1",
             user_id=user_id,
-            product_type="SBI FD",
-            reason="Based on your surplus cash balance of ₹45,230, investing in SBI Amrit Kalash FD yields a secure 7.1% p.a.",
-            score=0.92,
-            shown_at=datetime.utcnow().isoformat()
-        ),
-        Recommendation(
-            id="rec-2",
-            user_id=user_id,
-            product_type="SBI Mutual Fund",
-            reason="Your regular savings habits suggest you are ready to start a monthly SIP in SBI Bluechip Fund for long-term wealth growth.",
-            score=0.85,
+            product_type="SBI Savings Account",
+            reason=f"Optimize interest rates on your monthly income of ₹{income:,} using SBI Auto-Sweep.",
+            score=0.90,
             shown_at=datetime.utcnow().isoformat()
         )
     ]
