@@ -1,15 +1,21 @@
+import os
 import logging
+from dotenv import load_dotenv
 from supabase import create_client, Client
-from app.config import settings
+
+load_dotenv()
 
 logger = logging.getLogger("saathi_supabase")
 
 # Initialize client only if variables are provided
 supabase_client: Client = None
 
-if settings.SUPABASE_URL and settings.SUPABASE_ANON_KEY:
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
+
+if SUPABASE_URL and SUPABASE_ANON_KEY:
     try:
-        supabase_client = create_client(settings.SUPABASE_URL, settings.SUPABASE_ANON_KEY)
+        supabase_client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
         logger.info("Supabase client initialized successfully.")
     except Exception as e:
         logger.error(f"Failed to initialize Supabase client: {str(e)}")

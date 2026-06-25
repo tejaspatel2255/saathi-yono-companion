@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, MessageSquare, Award, User } from 'lucide-react';
 import { fetchUserProfile, type UserProfile } from '../api';
+import saathiLogo from '../assets/saathi_logo.png';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -23,6 +24,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const handleLogout = () => {
     localStorage.removeItem('saathi_user_id');
+    localStorage.removeItem('saathi_user');
     window.location.href = '/onboarding';
   };
 
@@ -50,10 +52,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <header className="sticky top-0 z-50 bg-white/95 border-b border-navy-light backdrop-blur-md shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            {/* Gold Accent Logo Icon */}
-            <div className="w-8 h-8 bg-gold flex items-center justify-center shadow-sm">
-              <span className="text-white font-black text-base">S</span>
-            </div>
+            {/* SAATHI Logo Image */}
+            <img src={saathiLogo} alt="SAATHI Logo" className="w-8 h-8 object-contain rounded" />
             <div>
               <span className="font-black text-xl tracking-wider text-gradient-gold">
                 SAATHI

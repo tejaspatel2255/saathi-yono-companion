@@ -7,23 +7,34 @@ import { Profile } from './pages/Profile';
 import { Onboarding } from './pages/Onboarding';
 
 function App() {
-  const userId = localStorage.getItem('saathi_user_id');
-
-  if (!userId) {
-    return <Onboarding />;
-  }
+  const hasUser = !!localStorage.getItem('saathi_user');
 
   return (
     <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/recommendations" element={<Recommendations />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Layout>
+      <Routes>
+        <Route 
+          path="/onboarding" 
+          element={hasUser ? <Navigate to="/" replace /> : <Onboarding />} 
+        />
+        <Route
+          path="/*"
+          element={
+            hasUser ? (
+              <Layout>
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/chat" element={<Chat />} />
+                  <Route path="/recommendations" element={<Recommendations />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </Layout>
+            ) : (
+              <Navigate to="/onboarding" replace />
+            )
+          }
+        />
+      </Routes>
     </Router>
   );
 }

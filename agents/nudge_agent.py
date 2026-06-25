@@ -17,7 +17,7 @@ class NudgeOutput(BaseModel):
 class NudgeAgent:
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.getenv("OPENROUTER_API_KEY", "")
-        self.model_name = "google/gemini-2.5-flash"
+        self.model_name = "google/gemini-flash-1.5"
         self.api_base = "https://openrouter.ai/api/v1"
         
         if not self.api_key:
@@ -28,10 +28,11 @@ class NudgeAgent:
             api_key=self.api_key,
             base_url=self.api_base,
             default_headers={
-                "HTTP-Referer": "https://github.com/saathi-sbi",
-                "X-Title": "SAATHI YONO Companion"
+                "HTTP-Referer": "http://localhost:5173",
+                "X-Title": "SAATHI"
             },
-            temperature=0.2
+            temperature=0.2,
+            max_tokens=1000
         )
         
         # Define Pydantic Output Parser

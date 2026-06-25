@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { api } from '../api';
 import { Send, Globe } from 'lucide-react';
 
@@ -10,6 +11,7 @@ interface Message {
 export const Chat: React.FC = () => {
   const userId = localStorage.getItem('saathi_user_id') || '';
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
   
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -74,15 +76,25 @@ export const Chat: React.FC = () => {
       if (response.data && response.data.reply) {
         setMessages((prev) => [...prev, { role: 'assistant', text: response.data.reply }]);
       } else {
-        setMessages((prev) => [...prev, { role: 'assistant', text: 'Sorry, I encountered an issue. Please try again.' }]);
+        setMessages((prev) => [...prev, { role: 'assistant', text: 'SAATHI is thinking... please try again 🙏' }]);
       }
     } catch (error) {
       console.error('Error sending chat message:', error);
-      setMessages((prev) => [...prev, { role: 'assistant', text: 'Error connecting to SAATHI backend. Please ensure uvicorn is running locally.' }]);
+      setMessages((prev) => [...prev, { role: 'assistant', text: 'SAATHI is thinking... please try again 🙏' }]);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Trigger prefilled message from navigation state if present
+  useEffect(() => {
+    const prefilled = location.state?.prefilledMessage;
+    if (prefilled) {
+      handleSendMessage(prefilled);
+      // Clean state to avoid sending again on page refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,8 +145,8 @@ export const Chat: React.FC = () => {
             <div
               className={`max-w-[80%] rounded-xl p-4 text-sm leading-relaxed ${
                 msg.role === 'user'
-                  ? 'bg-gold text-white font-bold rounded-tr-none shadow-sm'
-                  : 'bg-slate-100 text-slate-900 border border-navy-light rounded-tl-none shadow-sm'
+                  ? 'bg-[#001F70] text-white font-bold rounded-tr-none shadow-sm'
+                  : 'bg-[#EAD1BB] text-slate-900 border border-[#D5A27A] rounded-tl-none shadow-sm font-bold'
               }`}
             >
               <p className="whitespace-pre-wrap">{msg.text}</p>
@@ -145,7 +157,7 @@ export const Chat: React.FC = () => {
         {/* Typing indicator */}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-slate-100 text-slate-900 border border-navy-light rounded-xl rounded-tl-none p-4 flex items-center space-x-1.5 shadow-sm">
+            <div className="bg-[#EAD1BB] text-slate-900 border border-[#D5A27A] rounded-xl rounded-tl-none p-4 flex items-center space-x-1.5 shadow-sm">
               <span className="w-2 h-2 bg-gold rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
               <span className="w-2 h-2 bg-gold rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
               <span className="w-2 h-2 bg-gold rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>

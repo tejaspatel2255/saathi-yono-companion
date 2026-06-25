@@ -16,15 +16,18 @@ export const Recommendations: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Recommendation | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchRecommendations = async () => {
     if (!userId) return;
     try {
       setLoading(true);
+      setError(null);
       const res = await api.get(`/recommendations/${userId}`);
       setRecommendations(res.data.recommendations || []);
     } catch (error) {
       console.error('Error fetching recommendations:', error);
+      setError('SAATHI is thinking... please try again 🙏');
     } finally {
       setLoading(false);
     }
@@ -87,7 +90,17 @@ export const Recommendations: React.FC = () => {
       </div>
 
       {/* Recommendations listing */}
-      {loading ? (
+      {error ? (
+        <div className="glass-card border border-red-200 bg-red-50/50 rounded-xl p-12 text-center text-red-800">
+          <p className="font-bold text-base mb-3">{error}</p>
+          <button
+            onClick={fetchRecommendations}
+            className="px-5 py-2.5 bg-red-650 hover:bg-red-700 text-white font-bold text-xs rounded-md transition-all shadow-sm cursor-pointer border-none"
+          >
+            Retry
+          </button>
+        </div>
+      ) : loading ? (
         <div className="text-center py-20 text-slate-500 text-xs font-bold animate-pulse">Evaluating product portfolio...</div>
       ) : recommendations.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

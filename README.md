@@ -10,6 +10,7 @@ SAATHI is a state-of-the-art agentic AI financial companion designed to elevate 
 1. **Onboarding & Session Management**:
    - Premium onboarding portal requesting basic demographics (Name, Mobile, Age, Income, Savings, Existing Accounts) and preferred language.
    - Interactive initials avatar dropdown menu displays registered user profile details and supports full session logout (`localStorage` session cleanup and login redirection).
+   - **Try Demo Mode**: Instantly access a pre-configured sandbox session (Rahul Sharma, English, income 50K-1L) without entering details manually.
 
 2. **Agent Ignition**:
    - Upon first registration, SAATHI immediately triggers the `RecommendationAgent` and `NudgeAgent` to analyze input demographics, pre-generating customized SBI offers and insights.
@@ -118,9 +119,9 @@ By default, the table schema in `database/schema.sql` enables Row-Level Security
    ```bash
    pip install -r requirements.txt
    ```
-4. Start the development server:
+4. Start the development server (make sure venv is active, or use direct path):
    ```bash
-   uvicorn app.main:app --reload --port 8000
+   venv\Scripts\uvicorn.exe app.main:app --reload --port 8000
    ```
 
 ---

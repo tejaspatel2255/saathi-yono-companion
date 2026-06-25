@@ -9,6 +9,7 @@ export const Profile: React.FC = () => {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // New Transaction Form State
   const [txForm, setTxForm] = useState({
@@ -23,6 +24,7 @@ export const Profile: React.FC = () => {
   const loadData = async () => {
     if (!userId) return;
     setSyncing(true);
+    setError(null);
     try {
       const uProfile = await fetchUserProfile(userId);
       setProfile(uProfile);
@@ -30,6 +32,7 @@ export const Profile: React.FC = () => {
       setTransactions(uTxList);
     } catch (err) {
       console.error('Error loading Profile sandbox data:', err);
+      setError('SAATHI is thinking... please try again 🙏');
     } finally {
       setLoading(false);
       setSyncing(false);
@@ -97,6 +100,20 @@ export const Profile: React.FC = () => {
       window.location.href = '/'; // Will trigger onboarding gate
     }
   };
+
+  if (error) {
+    return (
+      <div className="min-h-[50vh] flex flex-col items-center justify-center text-center p-6 bg-red-50/50 border border-red-200 rounded-xl">
+        <p className="font-bold text-red-800 text-base mb-3">{error}</p>
+        <button
+          onClick={loadData}
+          className="px-5 py-2.5 bg-red-650 hover:bg-red-700 text-white font-bold text-xs rounded-md transition-all shadow-sm cursor-pointer border-none"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

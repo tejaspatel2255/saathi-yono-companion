@@ -20,10 +20,11 @@ def get_llm():
         openai_api_key=OPENROUTER_API_KEY,
         openai_api_base="https://openrouter.ai/api/v1",
         default_headers={
-            "HTTP-Referer": "https://github.com/saathi-sbi",
-            "X-Title": "SAATHI YONO Companion"
+            "HTTP-Referer": "http://localhost:5173",
+            "X-Title": "SAATHI"
         },
-        temperature=0.3
+        temperature=0.3,
+        max_tokens=1500
     )
 
 # 2. Define Financial Tools

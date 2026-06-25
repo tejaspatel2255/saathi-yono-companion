@@ -1,6 +1,101 @@
 {
-  "users": {},
-  "transactions": {},
-  "nudges": {},
-  "recommendations": {}
+  "users": {
+    "393dc15c-086b-4c4e-80a4-4083291fb878": {
+      "name": "Tejas Patel",
+      "phone": "9104988163",
+      "language_preference": "en",
+      "financial_profile": {
+        "age": 21,
+        "income": 50000.0,
+        "savings": 100000.0,
+        "existing_products": [
+          "Savings Account",
+          "Fixed Deposit (FD)",
+          "Credit Card",
+          "Mutual Funds",
+          "Personal Loan"
+        ]
+      },
+      "id": "393dc15c-086b-4c4e-80a4-4083291fb878"
+    },
+    "demo-user-001": {
+      "name": "Amit Kumar",
+      "phone": "+91 98765 43210",
+      "language_preference": "en",
+      "financial_profile": {
+        "age": 28,
+        "income": 80000.0,
+        "savings": 250000.0,
+        "existing_products": [
+          "Savings Account"
+        ]
+      },
+      "id": "demo-user-001"
+    }
+  },
+  "transactions": {
+    "393dc15c-086b-4c4e-80a4-4083291fb878": []
+  },
+  "nudges": {
+    "393dc15c-086b-4c4e-80a4-4083291fb878": [
+      {
+        "user_id": "393dc15c-086b-4c4e-80a4-4083291fb878",
+        "type": "savings_tip",
+        "message": "Keep track of your monthly spending. Start a smart SIP today!",
+        "channel": "in-app",
+        "is_read": false,
+        "id": "381e42cc-b0ff-4f03-a333-f874a84854b9",
+        "sent_at": "2026-06-25T18:03:02.154963"
+      }
+    ],
+    "demo-user-001": [
+      {
+        "id": "welcome-nudge",
+        "user_id": "demo-user-001",
+        "type": "savings_tip",
+        "message": "Welcome to SAATHI! Your transaction ledger is empty. Go to 'My Health' to simulate sandbox spends and get active money nudges.",
+        "sent_at": "2026-06-25T18:23:14.405395",
+        "is_read": false,
+        "channel": "in-app"
+      }
+    ]
+  },
+  "recommendations": {
+    "393dc15c-086b-4c4e-80a4-4083291fb878": [
+      {
+        "id": "2724aa21-f189-4739-8d55-561eb6d198ff",
+        "user_id": "393dc15c-086b-4c4e-80a4-4083291fb878",
+        "product_type": "SBI FD (Fixed Deposit)",
+        "reason": "Secure asset growth with guaranteed returns. Benefit: 7.10% interest rate",
+        "score": 0.9,
+        "shown_at": "2026-06-25T18:06:56.364438"
+      }
+    ],
+    "demo-user-001": [
+      {
+        "id": "gen-rec-0",
+        "user_id": "demo-user-001",
+        "product_type": "SBI Product",
+        "reason": "Given your age (28) and a good savings base, investing in mutual funds can help your money grow significantly over the long term, outpacing inflation and traditional savings accounts. You have a good income to support regular investments.",
+        "score": 0.85,
+        "shown_at": "2026-06-25T18:23:43.970028"
+      },
+      {
+        "id": "gen-rec-1",
+        "user_id": "demo-user-001",
+        "product_type": "SBI Product",
+        "reason": "At 28, it's an ideal time to secure your financial future and provide a safety net for any potential dependents. Premiums are lower when you are younger and healthier.",
+        "score": 0.85,
+        "shown_at": "2026-06-25T18:23:43.970050"
+      },
+      {
+        "id": "gen-rec-2",
+        "user_id": "demo-user-001",
+        "product_type": "SBI Product",
+        "reason": "With a stable income of ₹80,000, a credit card can offer convenience for daily expenses, build a good credit score, and provide rewards on your spending, which can be beneficial for a young professional.",
+        "score": 0.85,
+        "shown_at": "2026-06-25T18:23:43.970059"
+      }
+    ]
+  }
 }

@@ -17,8 +17,11 @@ sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 # Load Environment Variables first
 from dotenv import load_dotenv
 load_dotenv()
+import os
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 
-from app.config import settings
 from app.supabase_client import supabase_client
 
 # Import the new LangChain Agent classes
@@ -39,16 +42,16 @@ app = FastAPI(
 # Enable CORS for frontend integration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173", "https://*.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Initialize LangChain agents
-nudge_agent = NudgeAgent(api_key=settings.OPENROUTER_API_KEY)
-recommendation_agent = RecommendationAgent(api_key=settings.OPENROUTER_API_KEY)
-conversation_agent = ConversationAgent(api_key=settings.OPENROUTER_API_KEY)
+nudge_agent = NudgeAgent(api_key=OPENROUTER_API_KEY)
+recommendation_agent = RecommendationAgent(api_key=OPENROUTER_API_KEY)
+conversation_agent = ConversationAgent(api_key=OPENROUTER_API_KEY)
 
 # -------------------------------------------------------------------------
 # Request/Response Schemas
@@ -113,6 +116,7 @@ mock_users_db: Dict[str, Any] = {}
 mock_transactions_db: Dict[str, List[Dict[str, Any]]] = {}
 mock_nudges_db: Dict[str, List[Dict[str, Any]]] = {}
 mock_recs_db: Dict[str, List[Dict[str, Any]]] = {}
+mock_conversations_db: Dict[str, List[Dict[str, Any]]] = {}
 
 MOCK_DB_FILE = os.path.join(os.path.dirname(__file__), "mock_db_store.json")
 
@@ -487,6 +491,15 @@ async def post_chat(request: ChatRequest):
         except Exception as e:
             logger.error(f"Error saving user message to database: {str(e)}")
 
+    # Save to mock conversation db
+    if request.user_id not in mock_conversations_db:
+        mock_conversations_db[request.user_id] = []
+    mock_conversations_db[request.user_id].append({
+        "role": "user",
+        "message": request.message,
+        "language": request.language
+    })
+
     # 2. Fetch past conversation history (last 10 messages)
     history = []
     if supabase_client:
@@ -502,6 +515,10 @@ async def post_chat(request: ChatRequest):
                 history = list(reversed(response.data))
         except Exception as e:
             logger.error(f"Error fetching conversation history: {str(e)}")
+
+    if not history:
+        # Get from mock conversation db (last 10 items)
+        history = mock_conversations_db[request.user_id][-10:]
 
     # 3. Call LangChain ConversationAgent
     ai_reply = conversation_agent.chat(
@@ -521,6 +538,12 @@ async def post_chat(request: ChatRequest):
             }).execute()
         except Exception as e:
             logger.error(f"Error saving assistant reply to database: {str(e)}")
+
+    mock_conversations_db[request.user_id].append({
+        "role": "assistant",
+        "message": ai_reply,
+        "language": request.language
+    })
 
     return ChatResponse(reply=ai_reply)
 

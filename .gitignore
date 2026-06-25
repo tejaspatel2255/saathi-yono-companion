@@ -76,3 +76,6 @@ out/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Local persistent database
+backend/app/mock_db_store.json

@@ -11,7 +11,7 @@ logger = logging.getLogger("conversation_agent")
 class ConversationAgent:
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.getenv("OPENROUTER_API_KEY", "")
-        self.model_name = "google/gemini-2.5-flash"
+        self.model_name = "google/gemini-flash-1.5"
         self.api_base = "https://openrouter.ai/api/v1"
         
         if not self.api_key:
@@ -22,25 +22,22 @@ class ConversationAgent:
             api_key=self.api_key,
             base_url=self.api_base,
             default_headers={
-                "HTTP-Referer": "https://github.com/saathi-sbi",
-                "X-Title": "SAATHI YONO Companion"
+                "HTTP-Referer": "http://localhost:5173",
+                "X-Title": "SAATHI"
             },
-            temperature=0.3
+            temperature=0.3,
+            max_tokens=1200
         )
         
         self.prompt = ChatPromptTemplate.from_messages([
             ("system", (
-                "You are SAATHI, a premium AI financial companion for SBI YONO users. "
-                "Your goal is to answer users' banking queries helpfully, concisely, and transparently.\n\n"
-                "Key responsibilities:\n"
-                "- Assist with balance queries (remind them politely of mock data or secure steps).\n"
-                "- Provide product information (FD schemes, interest rates, Mutual Funds, Loans).\n"
-                "- Help with complaint lodging guidance and customer care numbers.\n"
-                "- Address loan eligibility parameters (e.g., minimum income, documentation).\n\n"
-                "Language Requirement:\n"
-                "- The user has specified their preferred language: '{language}'.\n"
-                "- You MUST answer in the requested language (supports English, Hindi, Tamil, Bengali).\n"
-                "- Use terms that are natural and culturally appropriate for banking in India."
+                "You are SAATHI, SBI's AI financial companion. "
+                "Help users with banking queries, suggest SBI products "
+                "(FD, loans, insurance, credit cards), and give "
+                "personalized financial advice. Be friendly, concise, "
+                "and respond in the same language the user writes in. "
+                "Always mention specific SBI products with benefits. "
+                "Please respond in the user's preferred language: {language_name}."
             )),
             MessagesPlaceholder(variable_name="history"),
             ("human", "{input}")
@@ -72,10 +69,18 @@ class ConversationAgent:
                 else:
                     langchain_history.append(AIMessage(content=content))
             
+            lang_map = {
+                "en": "English",
+                "hi": "Hindi",
+                "ta": "Tamil",
+                "bn": "Bengali"
+            }
+            language_name = lang_map.get(language.lower(), "English")
+
             response = self.chain.invoke({
                 "input": user_message,
                 "history": langchain_history,
-                "language": language
+                "language_name": language_name
             })
             return response.strip()
         except Exception as e:
