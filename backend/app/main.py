@@ -452,12 +452,6 @@ def get_transactions(user_id: str):
     if not transactions and user_id in mock_transactions_db:
         transactions = mock_transactions_db[user_id]
         
-    if not transactions:
-        transactions = [
-            {"user_id": user_id, "amount": 75000.0, "category": "Salary", "merchant": "SBI Corp Payroll", "timestamp": datetime.utcnow().isoformat(), "id": "seed-1"},
-            {"user_id": user_id, "amount": -1499.0, "category": "Dining", "merchant": "Zomato", "timestamp": datetime.utcnow().isoformat(), "id": "seed-2"},
-            {"user_id": user_id, "amount": -4500.0, "category": "Shopping", "merchant": "Amazon India", "timestamp": datetime.utcnow().isoformat(), "id": "seed-3"},
-        ]
     return {"transactions": transactions}
 
 # 1. POST /api/v1/chat
