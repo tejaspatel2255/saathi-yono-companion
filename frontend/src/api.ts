@@ -67,3 +67,9 @@ export const fetchTransactions = async (userId: string): Promise<any[]> => {
   const response = await api.get<{ transactions: any[] }>(`/transactions/${userId}`);
   return response.data.transactions;
 };
+
+export const clearTransactions = async (userId: string) => {
+  const response = await api.delete(`/transactions/${userId}`);
+  return response.data;
+};
+

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { User, FileText, ArrowUpRight, ArrowDownLeft, RefreshCw, LogOut, Plus } from 'lucide-react';
-import { fetchUserProfile, fetchTransactions, createTransaction, updateUserProfile, type UserProfile } from '../api';
+import { User, FileText, ArrowUpRight, ArrowDownLeft, RefreshCw, LogOut, Plus, Trash2 } from 'lucide-react';
+import { fetchUserProfile, fetchTransactions, createTransaction, updateUserProfile, clearTransactions, type UserProfile } from '../api';
 
 export const Profile: React.FC = () => {
   const userId = localStorage.getItem('saathi_user_id') || '';
@@ -78,6 +78,16 @@ export const Profile: React.FC = () => {
       setProfile(updated);
     } catch (err) {
       console.error('Error updating language preference:', err);
+    }
+  };
+
+  const handleClearTransactions = async () => {
+    if (!window.confirm('Are you sure you want to clear all transaction logs?')) return;
+    try {
+      await clearTransactions(userId);
+      setTransactions([]);
+    } catch (err) {
+      console.error('Failed to clear transactions:', err);
     }
   };
 
@@ -347,9 +357,20 @@ export const Profile: React.FC = () => {
               <FileText className="w-4 h-4 text-gold" />
               <span>Simulated SBI Transaction Log</span>
             </h3>
-            <span className="text-[9px] bg-gold/10 text-gold border border-gold/20 px-2.5 py-0.5 rounded font-bold shadow-sm">
-              {transactions.length} Records
-            </span>
+            <div className="flex items-center space-x-2">
+              <span className="text-[9px] bg-gold/10 text-gold border border-gold/20 px-2.5 py-0.5 rounded font-bold shadow-sm">
+                {transactions.length} Records
+              </span>
+              {transactions.length > 0 && (
+                <button
+                  onClick={handleClearTransactions}
+                  className="flex items-center space-x-1 text-[10px] text-red-650 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 px-2 py-0.5 rounded font-bold transition-all cursor-pointer"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  <span>Clear Logs</span>
+                </button>
+              )}
+            </div>
           </div>
           <div className="divide-y divide-navy-light max-h-[360px] overflow-y-auto">
             {transactions.length === 0 ? (

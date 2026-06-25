@@ -454,6 +454,20 @@ def get_transactions(user_id: str):
         
     return {"transactions": transactions}
 
+@app.delete("/api/v1/transactions/{user_id}")
+def clear_transactions(user_id: str):
+    if supabase_client:
+        try:
+            supabase_client.table("transactions").delete().eq("user_id", user_id).execute()
+        except Exception as e:
+            logger.error(f"Error clearing transactions from Supabase: {str(e)}")
+            
+    if user_id in mock_transactions_db:
+        mock_transactions_db[user_id] = []
+        
+    save_mock_db()
+    return {"status": "success", "message": "All transactions cleared successfully."}
+
 # 1. POST /api/v1/chat
 @app.post("/api/v1/chat", response_model=ChatResponse)
 async def post_chat(request: ChatRequest):
