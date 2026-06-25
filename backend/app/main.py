@@ -182,38 +182,7 @@ async def register_user(request: UserRegisterRequest):
             
     mock_users_db[user_id] = user_record
     
-    # Auto-seed standard starter transactions
-    starter_txs = [
-        {
-            "user_id": user_id,
-            "amount": 75000.0,
-            "category": "Salary",
-            "merchant": "SBI Corp Payroll"
-        },
-        {
-            "user_id": user_id,
-            "amount": -1499.0,
-            "category": "Dining",
-            "merchant": "Zomato"
-        },
-        {
-            "user_id": user_id,
-            "amount": -4500.0,
-            "category": "Shopping",
-            "merchant": "Amazon India"
-        }
-    ]
-    
-    if supabase_client:
-        try:
-            supabase_client.table("transactions").insert(starter_txs).execute()
-        except Exception as e:
-            logger.error(f"Error seeding transactions in Supabase: {str(e)}")
-            
-    mock_transactions_db[user_id] = [
-        {**tx, "timestamp": datetime.utcnow().isoformat(), "id": f"seed-{i}"}
-        for i, tx in enumerate(starter_txs)
-    ]
+    mock_transactions_db[user_id] = []
     
     # AGENT IGNITION: Pre-generate custom nudges & recommendations immediately
     # 1. Pre-generate recommendations
@@ -244,7 +213,7 @@ async def register_user(request: UserRegisterRequest):
 
     # 2. Pre-generate nudge
     try:
-        nudge_data = nudge_agent.generate_nudge(starter_txs)
+        nudge_data = nudge_agent.generate_nudge([])
         nudge_record = {
             "user_id": user_id,
             "type": nudge_data.get("type", "savings_tip"),

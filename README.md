@@ -12,10 +12,7 @@ SAATHI is a state-of-the-art agentic AI financial companion designed to elevate 
    - Interactive initials avatar dropdown menu displays registered user profile details and supports full session logout (`localStorage` session cleanup and login redirection).
 
 2. **Agent Ignition**:
-   - Upon first registration, SAATHI immediately triggers the `RecommendationAgent` and `NudgeAgent` to analyze input demographics and seed transaction logs, pre-generating customized SBI offers and insights.
-
-3. **Auto-Seeding Transaction History**:
-   - Generates standard starter transactions (SBI Corp Payroll credit, Zomato dining debit, Amazon shopping debit) automatically for new users, giving the companion instant data to analyze.
+   - Upon first registration, SAATHI immediately triggers the `RecommendationAgent` and `NudgeAgent` to analyze input demographics, pre-generating customized SBI offers and insights.
 
 4. **Live Spend Simulation Sandbox**:
    - In the **Health Profile** tab, users can post simulated debit/credit transactions (e.g., ₹9,000 spend at Zomato under Dining).
