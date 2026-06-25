@@ -3,6 +3,7 @@ import re
 import json
 import logging
 import sys
+import uuid
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
@@ -83,6 +84,34 @@ class Recommendation(BaseModel):
 class RecommendationListResponse(BaseModel):
     recommendations: List[Recommendation]
 
+class UserRegisterRequest(BaseModel):
+    name: str
+    phone: str
+    language_preference: str = "en"
+    age: int
+    income: float
+    savings: float
+    existing_products: List[str] = []
+
+class TransactionCreateRequest(BaseModel):
+    amount: float
+    category: str
+    merchant: str
+
+class UserProfileResponse(BaseModel):
+    id: str
+    name: str
+    phone: str
+    language_preference: str
+    financial_profile: Dict[str, Any]
+
+class UserLoginRequest(BaseModel):
+    phone: str
+
+# In-memory sandboxed fallback cache for simulator runs
+mock_users_db: Dict[str, Any] = {}
+mock_transactions_db: Dict[str, List[Dict[str, Any]]] = {}
+
 # -------------------------------------------------------------------------
 # API Endpoints
 # -------------------------------------------------------------------------
@@ -94,6 +123,240 @@ def read_root():
         "version": "1.0.0",
         "api_prefix": "/api/v1"
     }
+
+# User Registration & Sandbox Endpoints
+@app.post("/api/v1/users/register", response_model=UserProfileResponse)
+async def register_user(request: UserRegisterRequest):
+    user_id = str(uuid.uuid4())
+    user_record = {
+        "id": user_id,
+        "name": request.name,
+        "phone": request.phone,
+        "language_preference": request.language_preference,
+        "financial_profile": {
+            "age": request.age,
+            "income": request.income,
+            "savings": request.savings,
+            "existing_products": request.existing_products
+        }
+    }
+    
+    if supabase_client:
+        try:
+            supabase_client.table("users").insert(user_record).execute()
+        except Exception as e:
+            logger.error(f"Error registering user in Supabase: {str(e)}")
+            
+    mock_users_db[user_id] = user_record
+    
+    # Auto-seed standard starter transactions
+    starter_txs = [
+        {
+            "user_id": user_id,
+            "amount": 75000.0,
+            "category": "Salary",
+            "merchant": "SBI Corp Payroll"
+        },
+        {
+            "user_id": user_id,
+            "amount": -1499.0,
+            "category": "Dining",
+            "merchant": "Zomato"
+        },
+        {
+            "user_id": user_id,
+            "amount": -4500.0,
+            "category": "Shopping",
+            "merchant": "Amazon India"
+        }
+    ]
+    
+    if supabase_client:
+        try:
+            supabase_client.table("transactions").insert(starter_txs).execute()
+        except Exception as e:
+            logger.error(f"Error seeding transactions in Supabase: {str(e)}")
+            
+    mock_transactions_db[user_id] = [
+        {**tx, "timestamp": datetime.utcnow().isoformat(), "id": f"seed-{i}"}
+        for i, tx in enumerate(starter_txs)
+    ]
+    
+    return UserProfileResponse(
+        id=user_id,
+        name=request.name,
+        phone=request.phone,
+        language_preference=request.language_preference,
+        financial_profile=user_record["financial_profile"]
+    )
+
+@app.post("/api/v1/users/login", response_model=UserProfileResponse)
+async def login_user(request: UserLoginRequest):
+    # 1. Search in Supabase
+    if supabase_client:
+        try:
+            res = supabase_client.table("users").select("*").eq("phone", request.phone).execute()
+            if res.data:
+                item = res.data[0]
+                return UserProfileResponse(
+                    id=str(item.get("id")),
+                    name=item.get("name"),
+                    phone=item.get("phone"),
+                    language_preference=item.get("language_preference", "en"),
+                    financial_profile=item.get("financial_profile", {})
+                )
+        except Exception as e:
+            logger.error(f"Error checking user login in Supabase: {str(e)}")
+            
+    # 2. Search in local mock cache
+    for uid, u in mock_users_db.items():
+        if u["phone"] == request.phone:
+            return UserProfileResponse(
+                id=u["id"],
+                name=u["name"],
+                phone=u["phone"],
+                language_preference=u["language_preference"],
+                financial_profile=u["financial_profile"]
+            )
+            
+    # Fallback checks
+    if request.phone == "+91 98765 43210" or request.phone == "9876543210" or request.phone == "+919876543210":
+        return UserProfileResponse(
+            id="00000000-0000-0000-0000-000000000001",
+            name="Amit Kumar",
+            phone="+91 98765 43210",
+            language_preference="en",
+            financial_profile={
+                "age": 28,
+                "income": 80000,
+                "savings": 250000,
+                "existing_products": ["Savings Account"]
+            }
+        )
+        
+    raise HTTPException(status_code=404, detail="No registered companion profile found with this mobile number. Please onboarding first.")
+
+@app.get("/api/v1/profile/{user_id}", response_model=UserProfileResponse)
+def get_profile(user_id: str):
+    if supabase_client:
+        try:
+            res = supabase_client.table("users").select("*").eq("id", user_id).execute()
+            if res.data:
+                item = res.data[0]
+                return UserProfileResponse(
+                    id=str(item.get("id")),
+                    name=item.get("name"),
+                    phone=item.get("phone"),
+                    language_preference=item.get("language_preference", "en"),
+                    financial_profile=item.get("financial_profile", {})
+                )
+        except Exception as e:
+            logger.error(f"Error fetching profile from Supabase: {str(e)}")
+            
+    if user_id in mock_users_db:
+        u = mock_users_db[user_id]
+        return UserProfileResponse(
+            id=u["id"],
+            name=u["name"],
+            phone=u["phone"],
+            language_preference=u["language_preference"],
+            financial_profile=u["financial_profile"]
+        )
+        
+    return UserProfileResponse(
+        id=user_id,
+        name="Amit Kumar",
+        phone="+91 98765 43210",
+        language_preference="en",
+        financial_profile={
+            "age": 28,
+            "income": 80000,
+            "savings": 250000,
+            "existing_products": ["Savings Account"]
+        }
+    )
+
+@app.put("/api/v1/profile/{user_id}", response_model=UserProfileResponse)
+def update_profile(user_id: str, request: UserRegisterRequest):
+    update_data = {
+        "name": request.name,
+        "phone": request.phone,
+        "language_preference": request.language_preference,
+        "financial_profile": {
+            "age": request.age,
+            "income": request.income,
+            "savings": request.savings,
+            "existing_products": request.existing_products
+        }
+    }
+    
+    if supabase_client:
+        try:
+            supabase_client.table("users").update(update_data).eq("id", user_id).execute()
+        except Exception as e:
+            logger.error(f"Error updating profile in Supabase: {str(e)}")
+            
+    update_data["id"] = user_id
+    mock_users_db[user_id] = update_data
+    
+    return UserProfileResponse(
+        id=user_id,
+        name=request.name,
+        phone=request.phone,
+        language_preference=request.language_preference,
+        financial_profile=update_data["financial_profile"]
+    )
+
+@app.post("/api/v1/transactions/{user_id}")
+async def create_transaction(user_id: str, request: TransactionCreateRequest):
+    tx_record = {
+        "user_id": user_id,
+        "amount": request.amount,
+        "category": request.category,
+        "merchant": request.merchant
+    }
+    
+    inserted_tx = {**tx_record, "timestamp": datetime.utcnow().isoformat(), "id": str(uuid.uuid4()) if 'uuid' in sys.modules else "tx-temp"}
+    
+    if supabase_client:
+        try:
+            db_res = supabase_client.table("transactions").insert(tx_record).execute()
+            if db_res.data:
+                inserted_tx = db_res.data[0]
+        except Exception as e:
+            logger.error(f"Error inserting transaction in Supabase: {str(e)}")
+            
+    if user_id not in mock_transactions_db:
+        mock_transactions_db[user_id] = []
+    mock_transactions_db[user_id].insert(0, inserted_tx)
+    
+    return {"status": "success", "transaction": inserted_tx}
+
+@app.get("/api/v1/transactions/{user_id}")
+def get_transactions(user_id: str):
+    transactions = []
+    if supabase_client:
+        try:
+            response = supabase_client.table("transactions")\
+                .select("*")\
+                .eq("user_id", user_id)\
+                .order("timestamp", desc=True)\
+                .execute()
+            if response.data:
+                transactions = response.data
+        except Exception as e:
+            logger.error(f"Error fetching transactions: {str(e)}")
+            
+    if not transactions and user_id in mock_transactions_db:
+        transactions = mock_transactions_db[user_id]
+        
+    if not transactions:
+        transactions = [
+            {"user_id": user_id, "amount": 75000.0, "category": "Salary", "merchant": "SBI Corp Payroll", "timestamp": datetime.utcnow().isoformat(), "id": "seed-1"},
+            {"user_id": user_id, "amount": -1499.0, "category": "Dining", "merchant": "Zomato", "timestamp": datetime.utcnow().isoformat(), "id": "seed-2"},
+            {"user_id": user_id, "amount": -4500.0, "category": "Shopping", "merchant": "Amazon India", "timestamp": datetime.utcnow().isoformat(), "id": "seed-3"},
+        ]
+    return {"transactions": transactions}
 
 # 1. POST /api/v1/chat
 @app.post("/api/v1/chat", response_model=ChatResponse)
@@ -232,13 +495,16 @@ async def generate_nudge(user_id: str):
             
     # If no transactions exist, use typical mock transactions to analyze
     if not transactions:
-        transactions = [
-            {"amount": -2500, "category": "Dining", "merchant": "Zomato", "timestamp": "2026-06-24"},
-            {"amount": -4000, "category": "Shopping", "merchant": "Amazon", "timestamp": "2026-06-23"},
-            {"amount": -1200, "category": "Transport", "merchant": "Uber", "timestamp": "2026-06-22"},
-            {"amount": 50000, "category": "Salary", "merchant": "SBI Corp Payroll", "timestamp": "2026-06-01"},
-            {"amount": -3000, "category": "Dining", "merchant": "Starbucks", "timestamp": "2026-06-21"}
-        ]
+        if user_id in mock_transactions_db:
+            transactions = mock_transactions_db[user_id]
+        else:
+            transactions = [
+                {"amount": -2500, "category": "Dining", "merchant": "Zomato", "timestamp": "2026-06-24"},
+                {"amount": -4000, "category": "Shopping", "merchant": "Amazon", "timestamp": "2026-06-23"},
+                {"amount": -1200, "category": "Transport", "merchant": "Uber", "timestamp": "2026-06-22"},
+                {"amount": 50000, "category": "Salary", "merchant": "SBI Corp Payroll", "timestamp": "2026-06-01"},
+                {"amount": -3000, "category": "Dining", "merchant": "Starbucks", "timestamp": "2026-06-21"}
+            ]
         
     # 2. Call LangChain NudgeAgent
     nudge_data = nudge_agent.generate_nudge(transactions)
@@ -347,12 +613,15 @@ async def generate_recommendations(user_id: str):
             
     # Fallback profile for mockup/testing
     if not financial_profile:
-        financial_profile = {
-            "age": 28,
-            "income": 75000,
-            "savings": 120000,
-            "existing_products": ["Savings Account"]
-        }
+        if user_id in mock_users_db:
+            financial_profile = mock_users_db[user_id].get("financial_profile", {})
+        else:
+            financial_profile = {
+                "age": 28,
+                "income": 75000,
+                "savings": 120000,
+                "existing_products": ["Savings Account"]
+            }
         
     # 2. Call LangChain RecommendationAgent
     rec_data_list = recommendation_agent.get_recommendations(financial_profile)

@@ -19,8 +19,9 @@ interface Recommendation {
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const userId = '00000000-0000-0000-0000-000000000001';
+  const userId = localStorage.getItem('saathi_user_id') || '';
   
+  const [profile, setProfile] = useState<any>(null);
   const [nudges, setNudges] = useState<Nudge[]>([]);
   const [recs, setRecs] = useState<Recommendation[]>([]);
   const [loadingNudge, setLoadingNudge] = useState(false);
@@ -28,8 +29,12 @@ export const Dashboard: React.FC = () => {
   const [loadingData, setLoadingData] = useState(true);
 
   const fetchDashboardData = async () => {
+    if (!userId) return;
     try {
       setLoadingData(true);
+      const profileRes = await api.get(`/profile/${userId}`);
+      setProfile(profileRes.data);
+
       const nudgeRes = await api.get(`/nudges/${userId}`);
       setNudges(nudgeRes.data.nudges || []);
       
@@ -44,7 +49,7 @@ export const Dashboard: React.FC = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [userId]);
 
   const triggerNudgeGeneration = async () => {
     try {
@@ -82,11 +87,35 @@ export const Dashboard: React.FC = () => {
           <Sparkles className="w-32 h-32 text-gold" />
         </div>
         <h1 className="text-xl md:text-2xl font-black text-slate-900">
-          Welcome back, <span className="text-gradient-gold">Amit</span>!
+          Welcome back, <span className="text-gradient-gold">{profile ? profile.name.split(' ')[0] : 'User'}</span>!
         </h1>
         <p className="text-slate-600 text-xs md:text-sm mt-1 max-w-xl leading-relaxed">
           SAATHI has reviewed your transactions. We have found new opportunities to optimize your savings and interest rates.
         </p>
+      </div>
+
+      {/* Dynamic Sandbox Metrics Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="glass-card border border-navy-light p-4 rounded-xl shadow-sm bg-white">
+          <span className="text-[9px] text-copper uppercase tracking-wider font-extrabold block">Monthly Income</span>
+          <span className="text-lg font-black text-slate-900 mt-1 block">
+            ₹{profile ? profile.financial_profile.income.toLocaleString('en-IN') : '0'}
+          </span>
+        </div>
+        <div className="glass-card border border-navy-light p-4 rounded-xl shadow-sm bg-white">
+          <span className="text-[9px] text-copper uppercase tracking-wider font-extrabold block">Total Savings</span>
+          <span className="text-lg font-black text-slate-900 mt-1 block">
+            ₹{profile ? profile.financial_profile.savings.toLocaleString('en-IN') : '0'}
+          </span>
+        </div>
+        <div className="glass-card border border-navy-light p-4 rounded-xl shadow-sm bg-white">
+          <span className="text-[9px] text-copper uppercase tracking-wider font-extrabold block">Linked SBI Accounts</span>
+          <span className="text-xs font-bold text-slate-700 mt-1 block truncate">
+            {profile && profile.financial_profile.existing_products.length > 0
+              ? profile.financial_profile.existing_products.join(', ')
+              : 'None'}
+          </span>
+        </div>
       </div>
 
       {/* Proactive Nudge Card */}

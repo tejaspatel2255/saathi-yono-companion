@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, MessageSquare, Award, User } from 'lucide-react';
+import { fetchUserProfile, type UserProfile } from '../api';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -8,6 +9,27 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const userId = localStorage.getItem('saathi_user_id') || '';
+
+  useEffect(() => {
+    if (userId) {
+      fetchUserProfile(userId)
+        .then(setProfile)
+        .catch((err) => console.error('Error fetching layout profile:', err));
+    }
+  }, [userId]);
+
+  const getInitials = (name: string) => {
+    if (!name) return 'SA';
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   const navItems = [
     { name: 'Dashboard', path: '/', icon: Home },
@@ -38,11 +60,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
           <div className="flex items-center space-x-3">
             <div className="hidden md:flex flex-col text-right">
-              <span className="text-sm font-bold text-slate-900">Amit Kumar</span>
-              <span className="text-[10px] text-slate-500 font-mono tracking-tight">00000000-0000-0000-0000-000000000001</span>
+              <span className="text-sm font-bold text-slate-900">
+                {profile ? profile.name : 'SAATHI User'}
+              </span>
+              <span className="text-[9px] text-slate-500 font-mono tracking-tight max-w-[200px] truncate">
+                {userId}
+              </span>
             </div>
             <div className="w-9 h-9 rounded-full border-2 border-gold bg-slate-50 flex items-center justify-center font-bold text-gold shadow-sm hover:scale-105 transition-transform duration-200">
-              AK
+              {profile ? getInitials(profile.name) : 'SU'}
             </div>
           </div>
         </div>

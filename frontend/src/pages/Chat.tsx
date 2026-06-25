@@ -8,7 +8,7 @@ interface Message {
 }
 
 export const Chat: React.FC = () => {
-  const userId = '00000000-0000-0000-0000-000000000001';
+  const userId = localStorage.getItem('saathi_user_id') || '';
   const chatEndRef = useRef<HTMLDivElement>(null);
   
   const [messages, setMessages] = useState<Message[]>([
@@ -20,6 +20,18 @@ export const Chat: React.FC = () => {
   const [input, setInput] = useState('');
   const [language, setLanguage] = useState('en');
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (userId) {
+      api.get(`/profile/${userId}`)
+        .then((res) => {
+          if (res.data && res.data.language_preference) {
+            setLanguage(res.data.language_preference);
+          }
+        })
+        .catch((err) => console.error('Error fetching chat language preference:', err));
+    }
+  }, [userId]);
 
   const languages = [
     { code: 'en', label: 'English' },

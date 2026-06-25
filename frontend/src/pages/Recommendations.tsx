@@ -10,7 +10,7 @@ interface Recommendation {
 }
 
 export const Recommendations: React.FC = () => {
-  const userId = '00000000-0000-0000-0000-000000000001';
+  const userId = localStorage.getItem('saathi_user_id') || '';
   
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,6 +18,7 @@ export const Recommendations: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Recommendation | null>(null);
 
   const fetchRecommendations = async () => {
+    if (!userId) return;
     try {
       setLoading(true);
       const res = await api.get(`/recommendations/${userId}`);
@@ -31,7 +32,7 @@ export const Recommendations: React.FC = () => {
 
   useEffect(() => {
     fetchRecommendations();
-  }, []);
+  }, [userId]);
 
   const handleGenerate = async () => {
     try {
