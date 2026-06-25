@@ -1,7 +1,32 @@
 # SAATHI 🤝 (साथी)
-### Agentic AI Financial Companion for SBI YONO Users
+### Premium Agentic AI Financial Companion for SBI YONO
 
-SAATHI is a premium agentic AI financial companion designed for SBI YONO users. It offers real-time financial chat queries, transaction-based nudging, and personalized SBI product recommendations (FDs, mutual funds, insurance, loans) tailored to the user's financial profile.
+SAATHI is a state-of-the-art agentic AI financial companion designed to elevate the digital banking experience for SBI YONO users. Built using FastAPI (Python), LangChain, OpenRouter (Gemini-1.5-Flash), and React (TypeScript), SAATHI provides real-time multi-lingual financial chats, proactive budget nudges, and personalized SBI product matches based on sandbox transaction ledger simulations.
+
+---
+
+## ✨ Core Sandbox & AI Agent Features
+
+1. **Onboarding & Session Management**:
+   - Premium onboarding portal requesting basic demographics (Name, Mobile, Age, Income, Savings, Existing Accounts) and preferred language.
+   - Interactive initials avatar dropdown menu displays registered user profile details and supports full session logout (`localStorage` session cleanup and login redirection).
+
+2. **Agent Ignition**:
+   - Upon first registration, SAATHI immediately triggers the `RecommendationAgent` and `NudgeAgent` to analyze input demographics and seed transaction logs, pre-generating customized SBI offers and insights.
+
+3. **Auto-Seeding Transaction History**:
+   - Generates standard starter transactions (SBI Corp Payroll credit, Zomato dining debit, Amazon shopping debit) automatically for new users, giving the companion instant data to analyze.
+
+4. **Live Spend Simulation Sandbox**:
+   - In the **Health Profile** tab, users can post simulated debit/credit transactions (e.g., ₹9,000 spend at Zomato under Dining).
+   - The backend automatically re-runs the `NudgeAgent` on the updated ledger list, instantly regenerating the dashboard's AI Money Nudges.
+
+5. **Dynamic Dashboard Summaries**:
+   - High-fidelity summary cards displaying Monthly Income and Total Savings values directly from the user's active profile, giving real-time feedback as demographic configurations are updated.
+
+6. **Dual Database Persistence Layer**:
+   - Writes to Supabase cloud database automatically if configured.
+   - Fallbacks to a local file database (`backend/app/mock_db_store.json`) when Supabase is unconfigured or blocked by security policies, securing sandbox data across backend reloads.
 
 ---
 
@@ -10,13 +35,17 @@ SAATHI is a premium agentic AI financial companion designed for SBI YONO users. 
 ```
 SAATHI-SBI Hackathon/
 ├── frontend/             # React.js + Vite + TypeScript Frontend
+│   ├── src/
+│   │   ├── components/   # Layout headers, navigation bar, charts
+│   │   ├── pages/        # Dashboard, Chat, Recommendations, Profile (Sandbox)
+│   │   └── index.css     # Styling & premium glassmorphism theme
 ├── backend/              # FastAPI Python Web Server
 │   ├── app/
-│   │   ├── __init__.py
-│   │   ├── config.py            # Environment configuration
-│   │   ├── main.py              # API routes & startup seeding logic
+│   │   ├── config.py            # Environment settings (Dotenv)
+│   │   ├── main.py              # API routes, mock DB load/save, and startup seeding
 │   │   ├── openrouter_client.py # Client for OpenRouter Gemini API
-│   │   └── supabase_client.py   # Client for Supabase
+│   │   ├── supabase_client.py   # Client for Supabase
+│   │   └── mock_db_store.json   # Local persistent file database backup
 │   └── requirements.txt  # Python requirements
 ├── agents/               # LangChain Agent logic & Custom Tools
 │   ├── conversation_agent.py    # Companion Chat agent
@@ -24,32 +53,25 @@ SAATHI-SBI Hackathon/
 │   └── recommendation_agent.py  # Product recommendation agent
 ├── database/             # Supabase schema definitions (SQL)
 │   └── schema.sql        # Database tables & RLS policies
-├── .gitignore            # Blocks local environment secrets from Git
-├── .env.example          # Template for project environment keys
-└── README.md             # Setup and running instructions (this file)
+└── README.md             # Project documentation (this file)
 ```
 
 ---
 
 ## 🛠️ API Routes (Base URL: `/api/v1`)
 
-1. **`POST /chat`**:
-   - Sends a query to OpenRouter using `google/gemini-2.5-flash` with the SAATHI persona.
-   - Logs conversations asynchronously inside the database.
-   - Returns responses translated/written in the user's input language.
-
-2. **`GET /nudges/{user_id}`**:
-   - Fetches pending/unread nudges for the user from Supabase.
-
-3. **`POST /nudges/generate/{user_id}`**:
-   - Analyzes transactions and uses the OpenRouter Gemini API to generate personalized financial warnings/tips under 150 characters.
-   - Saves generated nudges into the database.
-
-4. **`GET /recommendations/{user_id}`**:
-   - Returns personalized product recommendations from the database.
-
-5. **`POST /recommendations/generate/{user_id}`**:
-   - Analyzes the user's financial profile (income, saving goals, assets) and calls OpenRouter to match the user with appropriate SBI banking and investment products, outputting the top 3 suggestions.
+1. **`POST /users/register`**:
+   - Registers a new user, seeds transactions, triggers **Agent Ignition**, and returns the profile.
+2. **`POST /users/login`**:
+   - Authenticates the user based on normalized phone matching.
+3. **`POST /chat`**:
+   - Connects with `google/gemini-flash-1.5` to chat with the user in their preferred language.
+4. **`GET /nudges/{user_id}`**:
+   - Fetches pending nudges (unread). Fallbacks to dynamic agent generation if empty.
+5. **`POST /transactions/{user_id}`**:
+   - Simulates a transaction and triggers `NudgeAgent` budget analysis in real time.
+6. **`GET /recommendations/{user_id}`**:
+   - Fetches product recommendations. Fallbacks to dynamic agent matches if empty.
 
 ---
 
@@ -60,30 +82,32 @@ Follow these steps to run the SAATHI application locally:
 ### Step 1: Clone and Configure Environment
 1. In the project root, copy `.env.example` to `.env`:
    ```bash
-   # In Windows Command Prompt / PowerShell:
    copy .env.example .env
    ```
 2. Populate the `.env` file with your credentials:
-   - **`OPENROUTER_API_KEY`**: Obtain from https://openrouter.ai/ (free/paid keys available).
-   - **`SUPABASE_URL`** & **`SUPABASE_ANON_KEY`**: Create a database project on https://supabase.com/ and fetch these from API Settings.
-
-> [!WARNING]
-> Do NOT commit your `.env` files to GitHub. The root `.gitignore` is configured to block these files automatically.
+   - **`OPENROUTER_API_KEY`**: Obtain from https://openrouter.ai/ (Gemini-1.5-Flash backend).
+   - **`SUPABASE_URL`** & **`SUPABASE_ANON_KEY`**: Get these credentials from your Supabase Project Settings.
 
 ---
 
-### Step 2: Supabase Database Setup
-1. Open the SQL Editor in your Supabase Dashboard.
-2. Open the file `database/schema.sql` from this repository.
-3. Copy-paste the entire contents of `database/schema.sql` into the Supabase SQL editor and execute it. This will build:
-   - Tables (`users`, `transactions`, `nudges`, `recommendations`, `conversations`).
-   - Performance indexes.
-   - Row Level Security (RLS) policies.
+### Step 2: Database RLS Configuration (Supabase)
+By default, the table schema in `database/schema.sql` enables Row-Level Security (RLS) using `auth.uid() = id`. Since SAATHI bypasses Supabase Auth to enable quick sandbox registrations:
+1. Go to your **Supabase Dashboard**.
+2. Open the **SQL Editor** tab.
+3. Click **New Query** and run the following commands to allow anonymous API writes:
+   ```sql
+   ALTER TABLE public.users DISABLE ROW LEVEL SECURITY;
+   ALTER TABLE public.transactions DISABLE ROW LEVEL SECURITY;
+   ALTER TABLE public.nudges DISABLE ROW LEVEL SECURITY;
+   ALTER TABLE public.recommendations DISABLE ROW LEVEL SECURITY;
+   ALTER TABLE public.conversations DISABLE ROW LEVEL SECURITY;
+   ```
+   *(If RLS is not disabled, SAATHI will automatically fall back to the local `mock_db_store.json` database backup so that data still persists locally.)*
 
 ---
 
 ### Step 3: Run the FastAPI Backend
-1. Open a terminal and navigate to the backend directory:
+1. Navigate to the backend directory:
    ```bash
    cd backend
    ```
@@ -95,21 +119,17 @@ Follow these steps to run the SAATHI application locally:
    ```
 3. Install dependencies:
    ```bash
-   pip install fastapi uvicorn pydantic pydantic-settings python-dotenv supabase langchain langchain-community langchain-openai httpx
+   pip install -r requirements.txt
    ```
 4. Start the development server:
    ```bash
    uvicorn app.main:app --reload --port 8000
    ```
-   *Your backend API will be available at http://localhost:8000. Interactive Swagger documentation is at http://localhost:8000/docs.*
-
-> [!NOTE]
-> On startup, the backend automatically registers a demo user `00000000-0000-0000-0000-000000000001` in your Supabase `users` table and seeds mock transactions for spending analysis.
 
 ---
 
 ### Step 4: Run the React + Vite Frontend
-1. Open a new terminal window and navigate to the frontend directory:
+1. Open a new terminal and navigate to the frontend directory:
    ```bash
    cd frontend
    ```
@@ -117,8 +137,8 @@ Follow these steps to run the SAATHI application locally:
    ```bash
    npm install
    ```
-3. Run the Vite development server:
+3. Run the development server:
    ```bash
    npm run dev
    ```
-   *The frontend dashboard will boot at http://localhost:5173/.*
+   *The frontend dashboard will start at http://localhost:5173/.*
