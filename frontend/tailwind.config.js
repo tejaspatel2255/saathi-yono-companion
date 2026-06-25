@@ -8,19 +8,19 @@ export default {
     extend: {
       colors: {
         navy: {
-          light: '#E2E8F0', // Border color
+          light: '#DFE3E8', // Divider / Border color
           DEFAULT: '#FFFFFF', // Card background
-          dark: '#F8FAFC', // Page background
+          dark: '#F4F6F9', // Page background canvas
         },
         gold: {
-          light: '#60A5FA', // Light cobalt highlight
-          DEFAULT: '#1D4ED8', // Cobalt blue primary
-          dark: '#1E3A8A', // Deep cobalt accent
+          light: '#3B82F6', // Light cobalt highlight
+          DEFAULT: '#002FA7', // International Klein Blue / Vanguard Cobalt
+          dark: '#001F70', // Deep midnight cobalt
         },
         copper: {
-          light: '#E5C158', // Champagne/light copper
-          DEFAULT: '#C89D7C', // Minimalist copper gold
-          dark: '#7C2D12', // Deep copper brown
+          light: '#EAD1BB', // Pale sand gold
+          DEFAULT: '#D5A27A', // Sandstone copper
+          dark: '#8E5D38', // Burnished bronze
         }
       },
       fontFamily: {

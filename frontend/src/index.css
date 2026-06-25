@@ -5,7 +5,7 @@
 body {
   margin: 0;
   font-family: 'Inter', 'Calibri', sans-serif;
-  background-color: #F8FAFC;
+  background-color: #F4F6F9;
   background-image: none;
   color: #0F172A;
   min-height: 100vh;
@@ -17,30 +17,30 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #F8FAFC;
+  background: #F4F6F9;
 }
 ::-webkit-scrollbar-thumb {
   background: #CBD5E1;
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #1D4ED8;
+  background: #002FA7;
 }
 
 /* Minimalist Nordic utilities */
 @layer utilities {
   .glass-card {
     background: #FFFFFF;
-    border: 1px solid #E2E8F0;
+    border: 1px solid #DFE3E8;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
   .glass-card-gold {
     background: #FFFFFF;
-    border: 2px solid #1D4ED8;
-    box-shadow: 0 4px 15px rgba(29, 78, 216, 0.06);
+    border: 2px solid #002FA7;
+    box-shadow: 0 4px 15px rgba(0, 47, 167, 0.06);
   }
   .text-gradient-gold {
-    background: linear-gradient(135deg, #1E3A8A 30%, #1D4ED8 100%);
+    background: linear-gradient(135deg, #001F70 30%, #002FA7 100%);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;

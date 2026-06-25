@@ -165,7 +165,7 @@ export const Recommendations: React.FC = () => {
                 <span className="text-[9px] text-copper uppercase tracking-widest font-extrabold block mb-1">
                   Relevance Score
                 </span>
-                <span className="text-xs font-semibold text-slate-650 mt-1 leading-relaxed block">
+                <span className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed block">
                   Matched at {(selectedProduct.score * 100).toFixed(0)}% accuracy based on risk profile and deposit behavior.
                 </span>
               </div>
