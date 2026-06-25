@@ -111,6 +111,39 @@ class UserLoginRequest(BaseModel):
 # In-memory sandboxed fallback cache for simulator runs
 mock_users_db: Dict[str, Any] = {}
 mock_transactions_db: Dict[str, List[Dict[str, Any]]] = {}
+mock_nudges_db: Dict[str, List[Dict[str, Any]]] = {}
+mock_recs_db: Dict[str, List[Dict[str, Any]]] = {}
+
+MOCK_DB_FILE = os.path.join(os.path.dirname(__file__), "mock_db_store.json")
+
+def load_mock_db():
+    global mock_users_db, mock_transactions_db, mock_nudges_db, mock_recs_db
+    if os.path.exists(MOCK_DB_FILE):
+        try:
+            with open(MOCK_DB_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                mock_users_db = data.get("users", {})
+                mock_transactions_db = data.get("transactions", {})
+                mock_nudges_db = data.get("nudges", {})
+                mock_recs_db = data.get("recommendations", {})
+                logger.info("Successfully loaded local persistent mock database.")
+        except Exception as e:
+            logger.error(f"Error loading mock database file: {str(e)}")
+
+def save_mock_db():
+    try:
+        with open(MOCK_DB_FILE, "w", encoding="utf-8") as f:
+            json.dump({
+                "users": mock_users_db,
+                "transactions": mock_transactions_db,
+                "nudges": mock_nudges_db,
+                "recommendations": mock_recs_db
+            }, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        logger.error(f"Error saving mock database file: {str(e)}")
+
+# Load persistent mock data immediately on startup/reload
+load_mock_db()
 
 # -------------------------------------------------------------------------
 # API Endpoints
@@ -182,6 +215,60 @@ async def register_user(request: UserRegisterRequest):
         for i, tx in enumerate(starter_txs)
     ]
     
+    # AGENT IGNITION: Pre-generate custom nudges & recommendations immediately
+    # 1. Pre-generate recommendations
+    try:
+        rec_data_list = recommendation_agent.get_recommendations(user_record["financial_profile"])
+        recs = []
+        for i, rec in enumerate(rec_data_list[:3]):
+            rec_record = {
+                "user_id": user_id,
+                "product_type": rec.get("product_type", "SBI Product"),
+                "reason": rec.get("reason", "Highly suitable for your profile."),
+                "score": float(rec.get("score", 0.85))
+            }
+            if supabase_client:
+                try:
+                    db_res = supabase_client.table("recommendations").insert(rec_record).execute()
+                    if db_res.data:
+                        rec_record["id"] = db_res.data[0].get("id")
+                except Exception as e:
+                    logger.error(f"Error saving recommendation to Supabase: {str(e)}")
+            if "id" not in rec_record:
+                rec_record["id"] = f"gen-rec-{i}"
+            rec_record["shown_at"] = datetime.utcnow().isoformat()
+            recs.append(rec_record)
+        mock_recs_db[user_id] = recs
+    except Exception as e:
+        logger.error(f"Error pre-generating recommendations: {str(e)}")
+
+    # 2. Pre-generate nudge
+    try:
+        nudge_data = nudge_agent.generate_nudge(starter_txs)
+        nudge_record = {
+            "user_id": user_id,
+            "type": nudge_data.get("type", "savings_tip"),
+            "message": nudge_data.get("message", "Welcome to SAATHI! Start tracking your savings today."),
+            "channel": "in-app",
+            "is_read": False
+        }
+        if supabase_client:
+            try:
+                db_res = supabase_client.table("nudges").insert(nudge_record).execute()
+                if db_res.data:
+                    nudge_record["id"] = db_res.data[0].get("id")
+            except Exception as e:
+                logger.error(f"Error saving nudge to Supabase: {str(e)}")
+        if "id" not in nudge_record:
+            nudge_record["id"] = "gen-nudge-1"
+        nudge_record["sent_at"] = datetime.utcnow().isoformat()
+        mock_nudges_db[user_id] = [nudge_record]
+    except Exception as e:
+        logger.error(f"Error pre-generating nudges: {str(e)}")
+    
+    # Persist mock database to JSON file
+    save_mock_db()
+    
     return UserProfileResponse(
         id=user_id,
         name=request.name,
@@ -190,27 +277,38 @@ async def register_user(request: UserRegisterRequest):
         financial_profile=user_record["financial_profile"]
     )
 
+def normalize_phone(phone: str) -> str:
+    # Remove all non-digit characters
+    digits = re.sub(r"\D", "", phone)
+    # If it is a 12-digit number starting with 91, strip it to get the 10-digit number
+    if len(digits) == 12 and digits.startswith("91"):
+        return digits[2:]
+    return digits
+
 @app.post("/api/v1/users/login", response_model=UserProfileResponse)
 async def login_user(request: UserLoginRequest):
+    req_phone_norm = normalize_phone(request.phone)
+    
     # 1. Search in Supabase
     if supabase_client:
         try:
-            res = supabase_client.table("users").select("*").eq("phone", request.phone).execute()
+            res = supabase_client.table("users").select("*").execute()
             if res.data:
-                item = res.data[0]
-                return UserProfileResponse(
-                    id=str(item.get("id")),
-                    name=item.get("name"),
-                    phone=item.get("phone"),
-                    language_preference=item.get("language_preference", "en"),
-                    financial_profile=item.get("financial_profile", {})
-                )
+                for item in res.data:
+                    if normalize_phone(item.get("phone", "")) == req_phone_norm:
+                        return UserProfileResponse(
+                            id=str(item.get("id")),
+                            name=item.get("name"),
+                            phone=item.get("phone"),
+                            language_preference=item.get("language_preference", "en"),
+                            financial_profile=item.get("financial_profile", {})
+                        )
         except Exception as e:
             logger.error(f"Error checking user login in Supabase: {str(e)}")
             
     # 2. Search in local mock cache
     for uid, u in mock_users_db.items():
-        if u["phone"] == request.phone:
+        if normalize_phone(u["phone"]) == req_phone_norm:
             return UserProfileResponse(
                 id=u["id"],
                 name=u["name"],
@@ -219,8 +317,8 @@ async def login_user(request: UserLoginRequest):
                 financial_profile=u["financial_profile"]
             )
             
-    # Fallback checks
-    if request.phone == "+91 98765 43210" or request.phone == "9876543210" or request.phone == "+919876543210":
+    # Fallback checks (e.g. Amit Kumar)
+    if req_phone_norm == "9876543210":
         return UserProfileResponse(
             id="00000000-0000-0000-0000-000000000001",
             name="Amit Kumar",
@@ -298,6 +396,7 @@ def update_profile(user_id: str, request: UserRegisterRequest):
             
     update_data["id"] = user_id
     mock_users_db[user_id] = update_data
+    save_mock_db()
     
     return UserProfileResponse(
         id=user_id,
@@ -330,6 +429,40 @@ async def create_transaction(user_id: str, request: TransactionCreateRequest):
         mock_transactions_db[user_id] = []
     mock_transactions_db[user_id].insert(0, inserted_tx)
     
+    # Automatically trigger nudge regeneration based on the updated transactions list
+    try:
+        # Fetch updated list of transactions
+        all_txs = mock_transactions_db[user_id]
+        if supabase_client:
+            try:
+                db_res = supabase_client.table("transactions").select("*").eq("user_id", user_id).order("timestamp", desc=True).limit(10).execute()
+                if db_res.data:
+                    all_txs = db_res.data
+            except Exception as e:
+                logger.error(f"Error fetching latest transactions: {str(e)}")
+        
+        # Call NudgeAgent to analyze updated ledger
+        nudge_data = nudge_agent.generate_nudge(all_txs)
+        nudge_record = {
+            "user_id": user_id,
+            "type": nudge_data.get("type", "savings_tip"),
+            "message": nudge_data.get("message", "Keep monitoring your spends with SAATHI."),
+            "channel": "in-app",
+            "is_read": False
+        }
+        if supabase_client:
+            try:
+                supabase_client.table("nudges").insert(nudge_record).execute()
+            except Exception as e:
+                logger.error(f"Error saving updated nudge: {str(e)}")
+        
+        # Save to mock nudges database
+        nudge_record["sent_at"] = datetime.utcnow().isoformat()
+        mock_nudges_db[user_id] = [nudge_record]
+    except Exception as e:
+        logger.error(f"Error auto-updating nudge after transaction: {str(e)}")
+        
+    save_mock_db()
     return {"status": "success", "transaction": inserted_tx}
 
 @app.get("/api/v1/transactions/{user_id}")
@@ -446,7 +579,58 @@ def get_nudges(user_id: str):
         except Exception as e:
             logger.error(f"Error fetching nudges: {str(e)}")
             
-    # Mock fallback nudges
+    # Return pre-generated nudges if present in mock cache
+    if user_id in mock_nudges_db:
+        return NudgeListResponse(nudges=[
+            Nudge(
+                id=n.get("id"),
+                user_id=n.get("user_id"),
+                type=n.get("type"),
+                message=n.get("message"),
+                sent_at=n.get("sent_at", datetime.utcnow().isoformat()),
+                is_read=n.get("is_read", False),
+                channel=n.get("channel", "in-app")
+            )
+            for n in mock_nudges_db[user_id]
+        ])
+
+    # Dynamic Agent Ignition Fallback: Generate real-time budget nudge using NudgeAgent
+    try:
+        # Retrieve ledger
+        txs = []
+        if supabase_client:
+            try:
+                db_res = supabase_client.table("transactions").select("*").eq("user_id", user_id).order("timestamp", desc=True).limit(10).execute()
+                if db_res.data:
+                    txs = db_res.data
+            except Exception:
+                pass
+        if not txs:
+            txs = mock_transactions_db.get(user_id, [])
+        if not txs:
+            txs = [
+                {"amount": 75000.0, "category": "Salary", "merchant": "SBI Corp Payroll"},
+                {"amount": -1499.0, "category": "Dining", "merchant": "Zomato"},
+                {"amount": -4500.0, "category": "Shopping", "merchant": "Amazon India"}
+            ]
+        
+        nudge_data = nudge_agent.generate_nudge(txs)
+        nudge_record = {
+            "id": "gen-nudge-1",
+            "user_id": user_id,
+            "type": nudge_data.get("type", "savings_tip"),
+            "message": nudge_data.get("message", "Keep monitoring your spends with SAATHI."),
+            "sent_at": datetime.utcnow().isoformat(),
+            "is_read": False,
+            "channel": "in-app"
+        }
+        mock_nudges_db[user_id] = [nudge_record]
+        save_mock_db()
+        return NudgeListResponse(nudges=[Nudge(**nudge_record)])
+    except Exception as e:
+        logger.error(f"Error auto-generating fallback nudge: {str(e)}")
+
+    # Hardcoded safety fallback nudges
     mock_nudges = [
         Nudge(
             id="mock-1",
@@ -527,12 +711,17 @@ async def generate_nudge(user_id: str):
         except Exception as e:
             logger.error(f"Error saving generated nudge to DB: {str(e)}")
             
+    nudge_record["id"] = inserted_id
+    nudge_record["sent_at"] = datetime.utcnow().isoformat()
+    mock_nudges_db[user_id] = [nudge_record]
+    save_mock_db()
+
     return Nudge(
         id=inserted_id,
         user_id=user_id,
         type=nudge_record["type"],
         message=nudge_record["message"],
-        sent_at=datetime.utcnow().isoformat(),
+        sent_at=nudge_record["sent_at"],
         is_read=False,
         channel=nudge_record["channel"]
     )
@@ -567,7 +756,61 @@ def get_recommendations(user_id: str):
         except Exception as e:
             logger.error(f"Error fetching recommendations: {str(e)}")
             
-    # Mock fallback recommendations
+    # Return pre-generated recommendations if present in mock cache
+    if user_id in mock_recs_db:
+        return RecommendationListResponse(recommendations=[
+            Recommendation(
+                id=r.get("id"),
+                user_id=r.get("user_id"),
+                product_type=r.get("product_type"),
+                reason=r.get("reason"),
+                score=float(r.get("score", 0.85)),
+                shown_at=r.get("shown_at", datetime.utcnow().isoformat())
+            )
+            for r in mock_recs_db[user_id]
+        ])
+
+    # Dynamic Agent Ignition Fallback: Generate real-time recommendations using RecommendationAgent
+    try:
+        # Retrieve financial profile
+        fp = {}
+        if supabase_client:
+            try:
+                db_res = supabase_client.table("users").select("financial_profile").eq("id", user_id).single().execute()
+                if db_res.data:
+                    fp = db_res.data.get("financial_profile", {})
+            except Exception:
+                pass
+        if not fp:
+            u = mock_users_db.get(user_id, {})
+            fp = u.get("financial_profile", {})
+        if not fp:
+            fp = {
+                "age": 28,
+                "income": 80000,
+                "savings": 250000,
+                "existing_products": ["Savings Account"]
+            }
+        
+        rec_data_list = recommendation_agent.get_recommendations(fp)
+        recs = []
+        for i, rec in enumerate(rec_data_list[:3]):
+            rec_record = {
+                "id": f"gen-rec-{i}",
+                "user_id": user_id,
+                "product_type": rec.get("product_type", "SBI Product"),
+                "reason": rec.get("reason", "Highly suitable for your profile."),
+                "score": float(rec.get("score", 0.85)),
+                "shown_at": datetime.utcnow().isoformat()
+            }
+            recs.append(rec_record)
+        mock_recs_db[user_id] = recs
+        save_mock_db()
+        return RecommendationListResponse(recommendations=[Recommendation(**r) for r in recs])
+    except Exception as e:
+        logger.error(f"Error auto-generating fallback recommendations: {str(e)}")
+
+    # Hardcoded safety fallback recommendations
     mock_recs = [
         Recommendation(
             id="rec-1",
@@ -658,6 +901,20 @@ async def generate_recommendations(user_id: str):
             score=rec_record["score"],
             shown_at=datetime.utcnow().isoformat()
         ))
+                
+    # Save to mock cache and file database
+    mock_recs_db[user_id] = [
+        {
+            "id": r.id,
+            "user_id": r.user_id,
+            "product_type": r.product_type,
+            "reason": r.reason,
+            "score": r.score,
+            "shown_at": r.shown_at
+        }
+        for r in final_recommendations
+    ]
+    save_mock_db()
         
     return RecommendationListResponse(recommendations=final_recommendations)
 

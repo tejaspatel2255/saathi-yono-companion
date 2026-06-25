@@ -10,6 +10,7 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const userId = localStorage.getItem('saathi_user_id') || '';
 
   useEffect(() => {
@@ -19,6 +20,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         .catch((err) => console.error('Error fetching layout profile:', err));
     }
   }, [userId]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('saathi_user_id');
+    window.location.href = '/onboarding';
+  };
 
   const getInitials = (name: string) => {
     if (!name) return 'SA';
@@ -67,8 +73,32 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 {userId}
               </span>
             </div>
-            <div className="w-9 h-9 rounded-full border-2 border-gold bg-slate-50 flex items-center justify-center font-bold text-gold shadow-sm hover:scale-105 transition-transform duration-200">
-              {profile ? getInitials(profile.name) : 'SU'}
+            <div className="relative">
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="w-9 h-9 rounded-full border-2 border-gold bg-slate-50 flex items-center justify-center font-bold text-gold shadow-sm hover:scale-105 transition-transform duration-200 cursor-pointer focus:outline-none"
+              >
+                {profile ? getInitials(profile.name) : 'SU'}
+              </button>
+              
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white border border-navy-light divide-y divide-gray-150 z-50 animate-fade-in">
+                  <div className="px-4 py-3">
+                    <p className="text-[9px] text-copper font-extrabold uppercase tracking-wider">Companion Account</p>
+                    <p className="text-xs font-bold text-slate-900 truncate mt-1">{profile ? profile.name : 'SAATHI User'}</p>
+                    <p className="text-[10px] text-slate-500 font-mono mt-0.5">{profile ? profile.phone : ''}</p>
+                    <p className="text-[8px] text-slate-400 font-mono mt-0.5 truncate">{userId}</p>
+                  </div>
+                  <div className="py-1">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left block px-4 py-2 text-xs text-red-600 hover:bg-red-50 font-bold transition-colors cursor-pointer border-none bg-transparent"
+                    >
+                      Sign Out & Disconnect
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
