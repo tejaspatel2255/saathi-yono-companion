@@ -17,20 +17,20 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-navy-dark text-white flex flex-col font-sans selection:bg-gold selection:text-navy">
+    <div className="min-h-screen bg-transparent text-slate-900 flex flex-col font-sans selection:bg-gold selection:text-white">
       {/* Top Header */}
-      <header className="sticky top-0 z-50 bg-navy border-b border-navy-light/40 backdrop-blur-md shadow-lg">
+      <header className="sticky top-0 z-50 bg-white/95 border-b border-navy-light backdrop-blur-md shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {/* Gold Accent Logo Icon */}
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-gold-dark to-gold flex items-center justify-center shadow-md">
-              <span className="text-navy font-bold text-lg">S</span>
+            <div className="w-8 h-8 bg-gold flex items-center justify-center shadow-sm">
+              <span className="text-white font-black text-base">S</span>
             </div>
             <div>
-              <span className="font-extrabold text-xl tracking-wider bg-clip-text text-gradient bg-gradient-to-r from-white to-gray-300">
+              <span className="font-black text-xl tracking-wider text-gradient-gold">
                 SAATHI
               </span>
-              <span className="text-[10px] block text-gold tracking-widest font-semibold uppercase -mt-1">
+              <span className="text-[9px] block text-copper font-bold tracking-widest uppercase -mt-0.5">
                 SBI YONO COMPANION
               </span>
             </div>
@@ -38,10 +38,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
           <div className="flex items-center space-x-3">
             <div className="hidden md:flex flex-col text-right">
-              <span className="text-sm font-semibold text-white">Amit Kumar</span>
-              <span className="text-xs text-gold">00000000-0000-0000-0000-000000000001</span>
+              <span className="text-sm font-bold text-slate-900">Amit Kumar</span>
+              <span className="text-[10px] text-slate-500 font-mono tracking-tight">00000000-0000-0000-0000-000000000001</span>
             </div>
-            <div className="w-10 h-10 rounded-full border-2 border-gold/70 bg-navy-light flex items-center justify-center font-bold text-gold shadow-inner">
+            <div className="w-9 h-9 rounded-full border-2 border-gold bg-slate-50 flex items-center justify-center font-bold text-gold shadow-sm hover:scale-105 transition-transform duration-200">
               AK
             </div>
           </div>
@@ -49,12 +49,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       </header>
 
       {/* Main Content Body */}
-      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 mb-20 md:mb-6">
+      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 mb-20 md:mb-6 animate-fade-in-up">
         {children}
       </main>
 
       {/* Mobile & Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-navy border-t border-navy-light/40 shadow-[0_-8px_20px_rgba(0,0,0,0.4)] backdrop-blur-lg">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-navy-light shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
         <div className="max-w-md mx-auto px-6 h-16 flex items-center justify-between">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -63,16 +63,19 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               <Link
                 key={item.name}
                 to={item.path}
-                className={`flex flex-col items-center justify-center flex-1 py-1 transition-all duration-200 ${
+                className={`flex flex-col items-center justify-center flex-1 py-1 transition-all duration-200 relative ${
                   isActive 
-                    ? 'text-gold scale-110' 
-                    : 'text-gray-400 hover:text-white'
+                    ? 'text-gold' 
+                    : 'text-slate-400 hover:text-slate-700'
                 }`}
               >
-                <Icon className="w-6 h-6" />
-                <span className="text-[10px] mt-1 font-medium tracking-tight">
+                <Icon className="w-5.5 h-5.5" />
+                <span className="text-[9px] mt-1 font-bold tracking-wide">
                   {item.name}
                 </span>
+                {isActive && (
+                  <span className="absolute bottom-1 w-1.5 h-1.5 bg-copper rounded-full"></span>
+                )}
               </Link>
             );
           })}

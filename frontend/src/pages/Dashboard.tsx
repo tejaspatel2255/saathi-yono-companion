@@ -75,31 +75,31 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-navy via-navy-light to-navy border border-navy-light/60 p-6 rounded-2xl relative overflow-hidden shadow-xl">
-        <div className="absolute right-4 top-4 opacity-10">
+      <div className="glass-card border border-navy-light p-6 rounded-xl relative overflow-hidden shadow-sm">
+        <div className="absolute right-4 top-4 opacity-[0.02] pointer-events-none">
           <Sparkles className="w-32 h-32 text-gold" />
         </div>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-white">
-          Welcome back, <span className="text-gold">Amit</span>!
+        <h1 className="text-xl md:text-2xl font-black text-slate-900">
+          Welcome back, <span className="text-gradient-gold">Amit</span>!
         </h1>
-        <p className="text-gray-300 text-sm mt-1 max-w-xl">
+        <p className="text-slate-600 text-xs md:text-sm mt-1 max-w-xl leading-relaxed">
           SAATHI has reviewed your transactions. We have found new opportunities to optimize your savings and interest rates.
         </p>
       </div>
 
       {/* Proactive Nudge Card */}
-      <div className="bg-navy border-2 border-gold/40 rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(245,166,35,0.15)]">
-        <div className="bg-gradient-to-r from-gold/10 to-transparent p-4 flex items-center justify-between border-b border-gold/25">
+      <div className="glass-card-gold rounded-xl overflow-hidden shadow-sm">
+        <div className="bg-gold/5 p-4 flex items-center justify-between border-b border-gold/20">
           <div className="flex items-center space-x-2">
-            <Zap className="w-5 h-5 text-gold animate-bounce" />
-            <span className="font-bold text-gold tracking-wide text-sm uppercase">Proactive Money Nudges</span>
+            <Zap className="w-5 h-5 text-copper animate-bounce" />
+            <span className="font-extrabold text-slate-900 tracking-wider text-xs uppercase">Proactive Money Nudges</span>
           </div>
           <button 
             onClick={triggerNudgeGeneration}
             disabled={loadingNudge}
-            className="flex items-center space-x-1 text-xs text-gold hover:text-white bg-gold/20 hover:bg-gold/40 px-3 py-1.5 rounded-lg font-medium transition-all"
+            className="flex items-center space-x-1.5 text-xs text-white bg-gold hover:bg-gold-dark px-3.5 py-1.5 rounded-md font-bold transition-all shadow-sm cursor-pointer border-none"
           >
             {loadingNudge ? (
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -113,17 +113,17 @@ export const Dashboard: React.FC = () => {
         </div>
         <div className="p-5">
           {loadingData ? (
-            <div className="text-center py-6 text-gray-400">Scanning ledger...</div>
+            <div className="text-center py-6 text-slate-400 text-xs font-semibold animate-pulse">Scanning ledger...</div>
           ) : nudges.length > 0 ? (
             <div className="space-y-4">
               {nudges.slice(0, 1).map((nudge) => (
-                <div key={nudge.id} className="flex items-start space-x-3 bg-navy-light/40 p-4 rounded-xl border border-navy-light/60">
-                  <div className="w-2 h-2 rounded-full bg-gold mt-2 shrink-0 animate-ping"></div>
+                <div key={nudge.id} className="flex items-start space-x-3 bg-slate-50 p-4 rounded-lg border border-navy-light">
+                  <div className="w-2.5 h-2.5 rounded-full bg-copper mt-1.5 shrink-0 animate-ping"></div>
                   <div>
-                    <p className="text-white text-sm md:text-base leading-relaxed font-semibold">
+                    <p className="text-slate-950 text-sm md:text-base leading-relaxed font-bold">
                       {nudge.message}
                     </p>
-                    <span className="text-[10px] text-gray-400 mt-2 block">
+                    <span className="text-[9px] text-copper mt-2 block font-extrabold uppercase tracking-wider">
                       Generated just now by SAATHI Agent
                     </span>
                   </div>
@@ -131,7 +131,7 @@ export const Dashboard: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-6 text-gray-400">
+            <div className="text-center py-6 text-slate-400 text-xs font-semibold">
               No pending alerts. Tap "Ask AI to Analyze Spend" to search.
             </div>
           )}
@@ -140,30 +140,30 @@ export const Dashboard: React.FC = () => {
 
       {/* Quick Actions Panel */}
       <div>
-        <h2 className="text-lg font-bold text-white mb-3">Quick Navigation Tools</h2>
+        <h2 className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-3">Quick Navigation Tools</h2>
         <div className="grid grid-cols-3 gap-3">
           <button
             onClick={() => navigate('/chat')}
-            className="flex flex-col items-center justify-center p-4 bg-navy hover:bg-navy-light border border-navy-light/50 hover:border-gold/30 rounded-xl transition-all shadow-md group"
+            className="flex flex-col items-center justify-center p-5 glass-card border border-navy-light hover:border-gold/30 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 group"
           >
-            <MessageSquare className="w-6 h-6 text-gold group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-semibold mt-2 text-gray-300 group-hover:text-white">Chat Room</span>
+            <MessageSquare className="w-6 h-6 text-gold group-hover:scale-105 transition-transform duration-200" />
+            <span className="text-xs font-bold mt-2 text-slate-600 group-hover:text-gold transition-colors">Chat Room</span>
           </button>
 
           <button
             onClick={() => navigate('/recommendations')}
-            className="flex flex-col items-center justify-center p-4 bg-navy hover:bg-navy-light border border-navy-light/50 hover:border-gold/30 rounded-xl transition-all shadow-md group"
+            className="flex flex-col items-center justify-center p-5 glass-card border border-navy-light hover:border-gold/30 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 group"
           >
-            <Award className="w-6 h-6 text-gold group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-semibold mt-2 text-gray-300 group-hover:text-white">SBI Offers</span>
+            <Award className="w-6 h-6 text-gold group-hover:scale-105 transition-transform duration-200" />
+            <span className="text-xs font-bold mt-2 text-slate-600 group-hover:text-gold transition-colors">SBI Offers</span>
           </button>
 
           <button
             onClick={() => navigate('/profile')}
-            className="flex flex-col items-center justify-center p-4 bg-navy hover:bg-navy-light border border-navy-light/50 hover:border-gold/30 rounded-xl transition-all shadow-md group"
+            className="flex flex-col items-center justify-center p-5 glass-card border border-navy-light hover:border-gold/30 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 group"
           >
-            <User className="w-6 h-6 text-gold group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-semibold mt-2 text-gray-300 group-hover:text-white">My Health</span>
+            <User className="w-6 h-6 text-gold group-hover:scale-105 transition-transform duration-200" />
+            <span className="text-xs font-bold mt-2 text-slate-600 group-hover:text-gold transition-colors">My Health</span>
           </button>
         </div>
       </div>
@@ -171,14 +171,14 @@ export const Dashboard: React.FC = () => {
       {/* Product Offers / Recommendations */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white flex items-center space-x-2">
-            <TrendingUp className="w-5 h-5 text-gold" />
+          <h2 className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 flex items-center space-x-2">
+            <TrendingUp className="w-4 h-4 text-gold" />
             <span>SBI Product Recommendations</span>
           </h2>
           <button 
             onClick={triggerRecsGeneration}
             disabled={loadingRecs}
-            className="flex items-center space-x-1 text-xs text-gold hover:text-white bg-navy-light hover:bg-navy border border-navy-light/60 hover:border-gold/30 px-3 py-1.5 rounded-lg transition-all"
+            className="flex items-center space-x-1 text-xs text-gold hover:text-gold-dark bg-slate-100 hover:bg-slate-200 border border-navy-light px-3 py-1.5 rounded-md font-bold transition-all"
           >
             {loadingRecs ? (
               <RefreshCw className="w-3 h-3 animate-spin" />
@@ -192,30 +192,30 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {loadingData ? (
-          <div className="text-center py-12 text-gray-400">Reading profile...</div>
+          <div className="text-center py-12 text-slate-400 text-xs font-semibold animate-pulse">Reading profile...</div>
         ) : recs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {recs.slice(0, 3).map((rec) => (
               <div 
                 key={rec.id} 
-                className="bg-navy border border-navy-light/60 hover:border-gold/30 p-5 rounded-xl shadow-md flex flex-col justify-between hover:translate-y-[-2px] transition-all duration-300"
+                className="glass-card border border-navy-light hover:border-gold/30 p-5 rounded-xl shadow-sm flex flex-col justify-between hover:-translate-y-0.5 transition-all duration-200 group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-extrabold text-white text-base">
+                    <span className="font-extrabold text-slate-900 text-base">
                       {rec.product_type}
                     </span>
-                    <span className="text-[10px] bg-gold/15 text-gold px-2 py-0.5 rounded-full font-bold">
+                    <span className="text-[9px] bg-gold/10 text-gold border border-gold/20 px-2 py-0.5 rounded font-bold shadow-sm">
                       {(rec.score * 100).toFixed(0)}% Match
                     </span>
                   </div>
-                  <p className="text-xs text-gray-300 leading-relaxed mt-1">
+                  <p className="text-xs text-slate-600 leading-relaxed mt-1">
                     {rec.reason}
                   </p>
                 </div>
                 <button 
                   onClick={() => navigate('/recommendations')}
-                  className="w-full mt-4 bg-navy-light hover:bg-gold hover:text-navy text-gold text-xs font-bold py-2 rounded-lg transition-all border border-gold/20 hover:border-transparent"
+                  className="w-full mt-4 bg-slate-50 hover:bg-gold hover:text-white text-gold text-xs font-bold py-2 rounded-md transition-all border border-gold/20 hover:border-transparent cursor-pointer"
                 >
                   Learn More
                 </button>
@@ -223,7 +223,7 @@ export const Dashboard: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="bg-navy border border-navy-light/60 rounded-xl p-8 text-center text-gray-400">
+          <div className="glass-card border border-navy-light rounded-xl p-8 text-center text-slate-400">
             No recommendation history found. Tap "Re-Analyze Profile" to evaluate SBI products.
           </div>
         )}
