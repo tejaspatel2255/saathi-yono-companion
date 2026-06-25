@@ -851,13 +851,22 @@ async def generate_recommendations(user_id: str):
                 "existing_products": ["Savings Account"]
             }
         
+    # Clear old recommendations for this user to avoid duplicates
+    if supabase_client:
+        try:
+            supabase_client.table("recommendations").delete().eq("user_id", user_id).execute()
+        except Exception as e:
+            logger.error(f"Error clearing old recommendations: {str(e)}")
+            
+    mock_recs_db[user_id] = []
+
     # 2. Call LangChain RecommendationAgent
     rec_data_list = recommendation_agent.get_recommendations(financial_profile)
         
     # 3. Store and format recommendations (Take top 3)
     final_recommendations = []
     
-    for item in rec_data_list[:3]:
+    for i, item in enumerate(rec_data_list[:3]):
         # Adapt keys returned by LLM (product vs product_type, reason vs reason, benefit vs benefit)
         prod_name = item.get("product", "SBI Financial Product")
         reason_text = f"{item.get('reason', '')} Benefit: {item.get('benefit', '')}"
@@ -869,7 +878,7 @@ async def generate_recommendations(user_id: str):
             "score": 0.90 # Defaults to 0.90 relevance score for agent selection
         }
         
-        inserted_id = "temp-rec-id"
+        inserted_id = f"gen-rec-{user_id[:8]}-{i}-{str(uuid.uuid4())[:8]}"
         if supabase_client:
             try:
                 db_res = supabase_client.table("recommendations").insert(rec_record).execute()
@@ -879,7 +888,7 @@ async def generate_recommendations(user_id: str):
                 logger.error(f"Error saving recommendation to database: {str(e)}")
                 
         final_recommendations.append(Recommendation(
-            id=inserted_id,
+            id=str(inserted_id),
             user_id=user_id,
             product_type=rec_record["product_type"],
             reason=rec_record["reason"],

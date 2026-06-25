@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { MessageSquare, Award, User, Zap, TrendingUp, LayoutDashboard, Globe, ArrowRight, RefreshCw } from 'lucide-react';
 import saathiLogo from '../assets/saathi_logo.png';
+import { t } from '../utils/i18n';
 
 interface Nudge {
   id: string;
@@ -132,10 +133,10 @@ export const Dashboard: React.FC = () => {
           <img src={saathiLogo} alt="SAATHI Logo" className="w-9 h-9 object-contain rounded-lg" />
           <div>
             <h1 className="text-lg md:text-xl font-black text-slate-900 leading-tight">
-              Namaste, <span className="text-gradient-gold">{name}</span> 👋
+              {t('namaste', language)}, <span className="text-gradient-gold">{name}</span> 👋
             </h1>
             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
-              YOUR PERSONAL FINANCIAL COMPANION
+              {t('companion_subtitle', language)}
             </p>
           </div>
         </div>
@@ -150,19 +151,19 @@ export const Dashboard: React.FC = () => {
       {/* Sandbox Metrics */}
       <div className="grid grid-cols-3 gap-3">
         <div className="glass-card border border-navy-light p-3.5 rounded-xl shadow-sm bg-white">
-          <span className="text-[8px] text-copper uppercase tracking-wider font-extrabold block">Monthly Income</span>
+          <span className="text-[8px] text-copper uppercase tracking-wider font-extrabold block">{t('monthly_income', language)}</span>
           <span className="text-sm md:text-base font-black text-slate-950 mt-0.5 block">
             {profile ? `₹${profile.financial_profile.income.toLocaleString('en-IN')}` : '₹50,000'}
           </span>
         </div>
         <div className="glass-card border border-navy-light p-3.5 rounded-xl shadow-sm bg-white">
-          <span className="text-[8px] text-copper uppercase tracking-wider font-extrabold block">Total Savings</span>
+          <span className="text-[8px] text-copper uppercase tracking-wider font-extrabold block">{t('total_savings', language)}</span>
           <span className="text-sm md:text-base font-black text-slate-950 mt-0.5 block">
             {profile ? `₹${profile.financial_profile.savings.toLocaleString('en-IN')}` : '₹2,50,000'}
           </span>
         </div>
         <div className="glass-card border border-navy-light p-3.5 rounded-xl shadow-sm bg-white">
-          <span className="text-[8px] text-copper uppercase tracking-wider font-extrabold block">Preferred Lang</span>
+          <span className="text-[8px] text-copper uppercase tracking-wider font-extrabold block">{t('pref_lang_label', language)}</span>
           <span className="text-sm md:text-base font-black text-slate-950 mt-0.5 block truncate">
             {language}
           </span>
@@ -174,7 +175,7 @@ export const Dashboard: React.FC = () => {
         <div className="bg-gold/5 px-4 py-3 flex items-center justify-between border-b border-gold/15">
           <div className="flex items-center space-x-2">
             <Zap className="w-4 h-4 text-copper animate-bounce" />
-            <span className="font-extrabold text-slate-900 tracking-wider text-[10px] uppercase">Today's Active Money Nudge</span>
+            <span className="font-extrabold text-slate-900 tracking-wider text-[10px] uppercase">{t('today_nudge', language)}</span>
           </div>
           <span className="text-[8px] font-extrabold text-copper uppercase tracking-wider bg-white border border-navy-light px-2 py-0.5 rounded">
             Live AI Nudge
@@ -197,7 +198,7 @@ export const Dashboard: React.FC = () => {
             onClick={handleTakeAction}
             className="shrink-0 flex items-center justify-center space-x-1.5 px-5 py-2.5 bg-gold hover:bg-gold-dark text-white font-bold text-xs rounded-md transition-all shadow-sm cursor-pointer border-none"
           >
-            <span>Take Action</span>
+            <span>{t('take_action', language)}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -207,7 +208,7 @@ export const Dashboard: React.FC = () => {
       <div className="space-y-3">
         <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center space-x-1.5">
           <TrendingUp className="w-4 h-4 text-gold" />
-          <span>For You — Personalized SBI Products</span>
+          <span>{t('for_you', language)} — Personalized SBI Products</span>
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -228,7 +229,7 @@ export const Dashboard: React.FC = () => {
                 onClick={() => navigate('/chat', { state: { prefilledMessage: rec.prefill } })}
                 className="w-full mt-4 bg-slate-50 hover:bg-gold hover:text-white text-gold text-xs font-extrabold py-2 rounded-md transition-all border border-gold/15 hover:border-transparent cursor-pointer"
               >
-                Ask SAATHI
+                {t('ask_saathi', language)}
               </button>
             </div>
           ))}
@@ -237,7 +238,7 @@ export const Dashboard: React.FC = () => {
 
       {/* 4. Section 3 — QUICK ACTIONS (bottom) */}
       <div className="space-y-3">
-        <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Quick Actions</h2>
+        <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('quick_actions', language)}</h2>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <button
@@ -247,7 +248,7 @@ export const Dashboard: React.FC = () => {
             <div className="w-10 h-10 rounded-full bg-gold/5 flex items-center justify-center text-gold group-hover:scale-105 transition-transform">
               <MessageSquare className="w-5 h-5" />
             </div>
-            <span className="text-xs font-bold mt-2.5 text-slate-800">Chat with SAATHI</span>
+            <span className="text-xs font-bold mt-2.5 text-slate-800">{t('chat_saathi', language)}</span>
           </button>
 
           <button
@@ -257,7 +258,7 @@ export const Dashboard: React.FC = () => {
             <div className="w-10 h-10 rounded-full bg-gold/5 flex items-center justify-center text-gold group-hover:scale-105 transition-transform">
               <LayoutDashboard className="w-5 h-5" />
             </div>
-            <span className="text-xs font-bold mt-2.5 text-slate-800">My Finances</span>
+            <span className="text-xs font-bold mt-2.5 text-slate-800">{t('my_finances', language)}</span>
           </button>
 
           <button
@@ -267,7 +268,7 @@ export const Dashboard: React.FC = () => {
             <div className="w-10 h-10 rounded-full bg-gold/5 flex items-center justify-center text-gold group-hover:scale-105 transition-transform">
               <Award className="w-5 h-5" />
             </div>
-            <span className="text-xs font-bold mt-2.5 text-slate-800">Recommendations</span>
+            <span className="text-xs font-bold mt-2.5 text-slate-800">{t('recommendations', language)}</span>
           </button>
 
           <button
@@ -277,7 +278,7 @@ export const Dashboard: React.FC = () => {
             <div className="w-10 h-10 rounded-full bg-gold/5 flex items-center justify-center text-gold group-hover:scale-105 transition-transform">
               <User className="w-5 h-5" />
             </div>
-            <span className="text-xs font-bold mt-2.5 text-slate-800">My Profile</span>
+            <span className="text-xs font-bold mt-2.5 text-slate-800">{t('my_profile', language)}</span>
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 import { Award, ShieldCheck, HelpCircle, ExternalLink, Sparkles, RefreshCw } from 'lucide-react';
+import { t } from '../utils/i18n';
 
 interface Recommendation {
   id: string;
@@ -11,6 +12,8 @@ interface Recommendation {
 
 export const Recommendations: React.FC = () => {
   const userId = localStorage.getItem('saathi_user_id') || '';
+  const userRaw = localStorage.getItem('saathi_user');
+  const language = userRaw ? JSON.parse(userRaw).language : 'English';
   
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,19 +61,17 @@ export const Recommendations: React.FC = () => {
       return <Award className="w-6 h-6 text-gold" />;
     }
     return <ShieldCheck className="w-6 h-6 text-gold" />;
-  };
-
-  return (
+  };  return (
     <div className="space-y-6">
       {/* Header banner */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-xl md:text-2xl font-black text-slate-900 flex items-center space-x-2">
             <Award className="w-6 h-6 text-gold animate-float" />
-            <span>Matched SBI Financial Products</span>
+            <span>{t('matched_sbi_products', language)}</span>
           </h1>
           <p className="text-slate-600 text-xs mt-1 leading-relaxed">
-            SAATHI analyzes your monthly cashflows and goals to match you with top-yielding SBI packages.
+            {t('matched_subtitle', language)}
           </p>
         </div>
         <button
@@ -83,7 +84,7 @@ export const Recommendations: React.FC = () => {
           ) : (
             <>
               <Sparkles className="w-4 h-4" />
-              <span>Re-evaluate Offers</span>
+              <span>{t('reevaluate_offers', language)}</span>
             </>
           )}
         </button>
@@ -107,11 +108,11 @@ export const Recommendations: React.FC = () => {
           {recommendations.map((rec) => (
             <div
               key={rec.id}
-              className="glass-card border border-navy-light p-6 rounded-xl flex flex-col justify-between hover:border-gold/30 hover:-translate-y-0.5 transition-all duration-200 shadow-sm relative overflow-hidden group"
+              className="glass-card border border-navy-light p-6 rounded-xl flex flex-col justify-between hover:border-gold/30 hover:-translate-y-0.5 transition-all duration-200 shadow-sm relative overflow-hidden group bg-white"
             >
               {/* Highlight ribbon */}
               <div className="absolute right-0 top-0 bg-gold/10 text-gold text-[9px] font-black uppercase py-1.5 px-3.5 rounded-bl-md border-l border-b border-gold/20 shadow-sm">
-                {(rec.score * 100).toFixed(0)}% Match
+                {(rec.score * 100).toFixed(0)}% {t('match', language)}
               </div>
 
               <div>
@@ -121,16 +122,16 @@ export const Recommendations: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="font-extrabold text-base text-slate-900">{rec.product_type}</h3>
-                    <span className="text-[9px] text-copper tracking-wide uppercase font-bold">State Bank of India</span>
+                    <span className="text-[9px] text-copper tracking-wide uppercase font-bold">{t('sbi', language)}</span>
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <div>
                     <span className="text-[9px] text-copper uppercase tracking-widest font-extrabold block mb-1">
-                      AI Assessment Reason
+                      {t('ai_reason', language)}
                     </span>
-                    <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded border border-navy-light">
+                    <p className="text-xs text-slate-660 leading-relaxed bg-slate-50 p-3.5 rounded border border-navy-light">
                       {rec.reason}
                     </p>
                   </div>
@@ -142,7 +143,7 @@ export const Recommendations: React.FC = () => {
                   onClick={() => setSelectedProduct(rec)}
                   className="flex-1 bg-slate-50 hover:bg-gold hover:text-white text-gold text-xs font-bold py-3 rounded-md border border-gold/20 hover:border-transparent transition-all cursor-pointer"
                 >
-                  Learn More
+                  {t('learn_more', language)}
                 </button>
                 <a
                   href="https://www.yono.sbi/"
@@ -180,7 +181,7 @@ export const Recommendations: React.FC = () => {
                   Relevance Score
                 </span>
                 <span className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed block">
-                  Matched at {(selectedProduct.score * 100).toFixed(0)}% accuracy based on risk profile and deposit behavior.
+                  {t('match_score_exp', language)}
                 </span>
               </div>
 
@@ -201,7 +202,7 @@ export const Recommendations: React.FC = () => {
                   rel="noreferrer"
                   className="text-xs bg-gold hover:bg-gold-dark text-white font-bold px-3 py-1.5 rounded transition-all"
                 >
-                  Go to YONO portal
+                  {t('go_yono', language)}
                 </a>
               </div>
             </div>
@@ -211,7 +212,7 @@ export const Recommendations: React.FC = () => {
                 onClick={() => setSelectedProduct(null)}
                 className="bg-slate-100 text-slate-800 text-xs font-bold px-4 py-2.5 rounded border border-navy-light hover:bg-slate-200 transition-all cursor-pointer"
               >
-                Close Dialog
+                {t('close_dialog', language)}
               </button>
             </div>
           </div>

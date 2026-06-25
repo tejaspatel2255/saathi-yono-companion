@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, FileText, ArrowUpRight, ArrowDownLeft, RefreshCw, LogOut, Plus, Trash2 } from 'lucide-react';
 import { fetchUserProfile, fetchTransactions, createTransaction, updateUserProfile, clearTransactions, type UserProfile } from '../api';
+import { t, LANGUAGES } from '../utils/i18n';
 
 export const Profile: React.FC = () => {
   const userId = localStorage.getItem('saathi_user_id') || '';
@@ -79,6 +80,27 @@ export const Profile: React.FC = () => {
         existing_products: profile.financial_profile.existing_products,
       });
       setProfile(updated);
+
+      // Persist to localStorage saathi_user object
+      const langMapping: Record<string, string> = {
+        en: 'English',
+        hi: 'Hindi',
+        ta: 'Tamil',
+        bn: 'Bengali',
+        te: 'Telugu',
+        mr: 'Marathi',
+        gu: 'Gujarati',
+        kn: 'Kannada',
+        ml: 'Malayalam',
+        pa: 'Punjabi'
+      };
+      const displayLang = langMapping[lang] || 'English';
+      const userRaw = localStorage.getItem('saathi_user');
+      if (userRaw) {
+        const uObj = JSON.parse(userRaw);
+        uObj.language = displayLang;
+        localStorage.setItem('saathi_user', JSON.stringify(uObj));
+      }
     } catch (err) {
       console.error('Error updating language preference:', err);
     }
@@ -135,19 +157,21 @@ export const Profile: React.FC = () => {
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (healthScore / 100) * circumference;
 
+  const langCode = profile?.language_preference || 'en';
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-xl md:text-2xl font-black text-slate-900 flex items-center space-x-2">
           <User className="w-6 h-6 text-gold animate-float" />
-          <span>My YONO Health Profile</span>
+          <span>{t('my_yono_health', langCode)}</span>
         </h1>
         <button
           onClick={handleReset}
           className="inline-flex items-center space-x-2 text-xs text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-md font-bold transition-all border border-red-200 cursor-pointer w-fit"
         >
           <LogOut className="w-3.5 h-3.5" />
-          <span>Reset Companion Profile</span>
+          <span>{t('reset_profile', langCode)}</span>
         </button>
       </div>
 
@@ -155,7 +179,7 @@ export const Profile: React.FC = () => {
         {/* Card 1: Circular Health Score Meter */}
         <div className="glass-card border border-navy-light p-6 rounded-xl flex flex-col items-center justify-center text-center shadow-sm">
           <span className="text-[10px] text-copper uppercase tracking-wider font-extrabold mb-3">
-            Financial Health Score
+            {t('health_score', langCode)}
           </span>
 
           <div className="relative w-36 h-36 flex items-center justify-center">
@@ -189,7 +213,7 @@ export const Profile: React.FC = () => {
 
           <div className="mt-4">
             <span className="bg-green-50 text-green-700 border border-green-200 text-xs px-3.5 py-1 rounded-md font-bold">
-              {healthScore > 75 ? 'Excellent Balance' : healthScore > 60 ? 'Stable & Growing' : 'Needs Optimization'}
+              {healthScore > 75 ? t('excellent_bal', langCode) : healthScore > 60 ? t('stable_growing', langCode) : t('needs_opt', langCode)}
             </span>
             <p className="text-xs text-slate-650 mt-4 leading-relaxed">
               {healthScore > 75 
@@ -200,30 +224,30 @@ export const Profile: React.FC = () => {
         </div>
 
         {/* Card 2: User Settings & Preference */}
-        <div className="glass-card border border-navy-light p-6 rounded-xl lg:col-span-2 flex flex-col justify-between shadow-sm">
+        <div className="glass-card border border-navy-light p-6 rounded-xl lg:col-span-2 flex flex-col justify-between shadow-sm bg-white">
           <div className="space-y-4">
             <h3 className="font-extrabold text-slate-900 text-base border-b border-navy-light pb-2 flex items-center space-x-2">
-              <span>Demographics & Preferences</span>
+              <span>{t('demographics', langCode)}</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <span className="text-[9px] text-copper uppercase tracking-widest font-extrabold block mb-1">
-                  Full Name
+                  {t('full_name', langCode)}
                 </span>
                 <span className="text-sm font-bold text-slate-900">{profile?.name}</span>
               </div>
 
               <div>
                 <span className="text-[9px] text-copper uppercase tracking-widest font-extrabold block mb-1">
-                  Registered Mobile
+                  {t('reg_mobile', langCode)}
                 </span>
                 <span className="text-sm font-bold text-slate-900">{profile?.phone}</span>
               </div>
 
               <div>
                 <span className="text-[9px] text-copper uppercase tracking-widest font-extrabold block mb-1">
-                  Annual simulated income
+                  {t('annual_income', langCode)}
                 </span>
                 <span className="text-sm font-bold text-slate-900">
                   ₹{((profile?.financial_profile.income || 0) * 12).toLocaleString('en-IN')}
@@ -232,31 +256,31 @@ export const Profile: React.FC = () => {
 
               <div>
                 <span className="text-[9px] text-copper uppercase tracking-widest font-extrabold block mb-1">
-                  YONO Security Level
+                  {t('yono_security', langCode)}
                 </span>
                 <span className="text-sm font-bold text-green-700 flex items-center">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
-                  High (Secured by MPIN)
+                  {t('high_security', langCode)}
                 </span>
               </div>
             </div>
 
             <div className="pt-2">
               <span className="text-[9px] text-copper uppercase tracking-widest font-extrabold block mb-2">
-                Preferred Companion Language
+                {t('pref_lang_label', langCode)}
               </span>
-              <div className="flex space-x-2">
-                {['en', 'hi', 'ta', 'bn'].map((lang) => (
+              <div className="flex flex-wrap gap-2">
+                {LANGUAGES.map((lang) => (
                   <button
-                    key={lang}
-                    onClick={() => handleLanguageChange(lang)}
-                    className={`text-xs px-3.5 py-2 rounded-md border font-bold capitalize transition-all duration-200 cursor-pointer ${
-                      profile?.language_preference === lang
+                    key={lang.code}
+                    onClick={() => handleLanguageChange(lang.code)}
+                    className={`text-xs px-3.5 py-2 rounded-md border font-bold transition-all duration-200 cursor-pointer ${
+                      profile?.language_preference === lang.code
                         ? 'bg-gold border-transparent text-white shadow-sm'
                         : 'bg-slate-50 border-navy-light hover:border-gold/30 text-slate-700'
                     }`}
                   >
-                    {lang === 'en' ? 'English' : lang === 'hi' ? 'Hindi' : lang === 'ta' ? 'Tamil' : 'Bengali'}
+                    {lang.name}
                   </button>
                 ))}
               </div>
@@ -278,13 +302,13 @@ export const Profile: React.FC = () => {
         <div className="glass-card border border-navy-light p-6 rounded-xl shadow-sm bg-white">
           <h3 className="font-extrabold text-slate-900 text-base border-b border-navy-light pb-2 flex items-center space-x-2 mb-4">
             <Plus className="w-4 h-4 text-gold" />
-            <span>Simulate New Transaction</span>
+            <span>{t('simulate_tx', langCode)}</span>
           </h3>
 
           <form onSubmit={handleCreateTx} className="space-y-4">
             <div>
               <label className="text-[9px] text-copper uppercase tracking-widest font-extrabold block mb-1">
-                Transaction Type
+                {t('tx_type', langCode)}
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
@@ -296,7 +320,7 @@ export const Profile: React.FC = () => {
                       : 'border-navy-light bg-slate-50 text-slate-600'
                   }`}
                 >
-                  Debit (Expense)
+                  {t('debit_expense', langCode)}
                 </button>
                 <button
                   type="button"
@@ -307,14 +331,14 @@ export const Profile: React.FC = () => {
                       : 'border-navy-light bg-slate-50 text-slate-600'
                   }`}
                 >
-                  Credit (Income)
+                  {t('credit_income', langCode)}
                 </button>
               </div>
             </div>
 
             <div>
               <label className="text-[9px] text-copper uppercase tracking-widest font-extrabold block mb-1">
-                Merchant / Description
+                {t('merchant_desc', langCode)}
               </label>
               <input
                 type="text"
@@ -329,7 +353,7 @@ export const Profile: React.FC = () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-[9px] text-copper uppercase tracking-widest font-extrabold block mb-1">
-                  Amount (₹)
+                  {t('amount', langCode)}
                 </label>
                 <input
                   type="number"
@@ -344,7 +368,7 @@ export const Profile: React.FC = () => {
 
               <div>
                 <label className="text-[9px] text-copper uppercase tracking-widest font-extrabold block mb-1">
-                  Category
+                  {t('category', langCode)}
                 </label>
                 <select
                   value={txForm.category}
@@ -362,7 +386,7 @@ export const Profile: React.FC = () => {
               type="submit"
               className="w-full bg-gold hover:bg-gold-dark text-white font-bold py-2 rounded text-xs transition-colors shadow-sm cursor-pointer border-none"
             >
-              Post Simulated Transaction
+              {t('post_tx', langCode)}
             </button>
           </form>
         </div>
@@ -372,7 +396,7 @@ export const Profile: React.FC = () => {
           <div className="p-4 bg-slate-50 border-b border-navy-light flex items-center justify-between">
             <h3 className="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
               <FileText className="w-4 h-4 text-gold" />
-              <span>Simulated SBI Transaction Log</span>
+              <span>{t('ledger_title', langCode)}</span>
             </h3>
             <div className="flex items-center space-x-2">
               <span className="text-[9px] bg-gold/10 text-gold border border-gold/20 px-2.5 py-0.5 rounded font-bold shadow-sm">
@@ -384,14 +408,14 @@ export const Profile: React.FC = () => {
                   className="flex items-center space-x-1 text-[10px] text-red-650 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 px-2 py-0.5 rounded font-bold transition-all cursor-pointer"
                 >
                   <Trash2 className="w-3 h-3" />
-                  <span>Clear Logs</span>
+                  <span>{t('clear_logs', langCode)}</span>
                 </button>
               )}
             </div>
           </div>
           <div className="divide-y divide-navy-light max-h-[360px] overflow-y-auto">
             {transactions.length === 0 ? (
-              <p className="p-6 text-center text-xs text-slate-400">No transactions recorded yet.</p>
+              <p className="p-6 text-center text-xs text-slate-400">{t('no_tx', langCode)}</p>
             ) : (
               transactions.map((tx, idx) => (
                 <div key={tx.id || idx} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors duration-200 odd:bg-slate-50/30">

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { api } from '../api';
 import { Send, Globe } from 'lucide-react';
+import { t } from '../utils/i18n';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -35,11 +36,29 @@ export const Chat: React.FC = () => {
     }
   }, [userId]);
 
+  // Synchronize greeting when language changes
+  useEffect(() => {
+    if (messages.length === 1 && messages[0].role === 'assistant') {
+      setMessages([
+        {
+          role: 'assistant',
+          text: t('chat_greeting', language)
+        }
+      ]);
+    }
+  }, [language]);
+
   const languages = [
     { code: 'en', label: 'English' },
     { code: 'hi', label: 'हिंदी (Hindi)' },
     { code: 'ta', label: 'தமிழ் (Tamil)' },
-    { code: 'bn', label: 'বাংলা (Bengali)' }
+    { code: 'bn', label: 'বাংলা (Bengali)' },
+    { code: 'te', label: 'తెలుగు (Telugu)' },
+    { code: 'mr', label: 'मराठी (Marathi)' },
+    { code: 'gu', label: 'ગુજરાતી (Gujarati)' },
+    { code: 'kn', label: 'ಕನ್ನಡ (Kannada)' },
+    { code: 'ml', label: 'മലയാളം (Malayalam)' },
+    { code: 'pa', label: 'ਪੰਜਾਬੀ (Punjabi)' }
   ];
 
   const quickPrompts = [
@@ -56,6 +75,52 @@ export const Chat: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
+
+  const handleLanguageChange = async (newLang: string) => {
+    setLanguage(newLang);
+    
+    // Map code to full name
+    const langMapping: Record<string, string> = {
+      en: 'English',
+      hi: 'Hindi',
+      ta: 'Tamil',
+      bn: 'Bengali',
+      te: 'Telugu',
+      mr: 'Marathi',
+      gu: 'Gujarati',
+      kn: 'Kannada',
+      ml: 'Malayalam',
+      pa: 'Punjabi'
+    };
+    const displayLang = langMapping[newLang] || 'English';
+    const userRaw = localStorage.getItem('saathi_user');
+    if (userRaw) {
+      const uObj = JSON.parse(userRaw);
+      uObj.language = displayLang;
+      localStorage.setItem('saathi_user', JSON.stringify(uObj));
+    }
+
+    // Sync to backend profile
+    if (userId) {
+      try {
+        const profileRes = await api.get(`/profile/${userId}`);
+        if (profileRes.data) {
+          const profile = profileRes.data;
+          await api.put(`/profile/${userId}`, {
+            name: profile.name,
+            phone: profile.phone,
+            language_preference: newLang,
+            age: profile.financial_profile.age,
+            income: profile.financial_profile.income,
+            savings: profile.financial_profile.savings,
+            existing_products: profile.financial_profile.existing_products,
+          });
+        }
+      } catch (err) {
+        console.error('Error syncing chat language preference to profile:', err);
+      }
+    }
+  };
 
   const handleSendMessage = async (textToSend: string) => {
     if (!textToSend.trim()) return;
@@ -76,11 +141,11 @@ export const Chat: React.FC = () => {
       if (response.data && response.data.reply) {
         setMessages((prev) => [...prev, { role: 'assistant', text: response.data.reply }]);
       } else {
-        setMessages((prev) => [...prev, { role: 'assistant', text: 'SAATHI is thinking... please try again 🙏' }]);
+        setMessages((prev) => [...prev, { role: 'assistant', text: t('error_friendly', language) }]);
       }
     } catch (error) {
       console.error('Error sending chat message:', error);
-      setMessages((prev) => [...prev, { role: 'assistant', text: 'SAATHI is thinking... please try again 🙏' }]);
+      setMessages((prev) => [...prev, { role: 'assistant', text: t('error_friendly', language) }]);
     } finally {
       setIsLoading(false);
     }
@@ -110,10 +175,10 @@ export const Chat: React.FC = () => {
             S
           </div>
           <div>
-            <h3 className="font-extrabold text-sm text-slate-900">SAATHI Agent</h3>
+            <h3 className="font-extrabold text-sm text-slate-900">{t('saathi_assistant', language)}</h3>
             <span className="text-[9px] text-green-600 font-bold flex items-center mt-0.5">
               <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block mr-1 animate-pulse shadow-[0_0_4px_#22c55e]"></span>
-              Online Companion
+              {t('online_companion', language)}
             </span>
           </div>
         </div>
@@ -123,7 +188,7 @@ export const Chat: React.FC = () => {
           <Globe className="w-4 h-4 text-gold" />
           <select
             value={language}
-            onChange={(e) => setLanguage(e.target.value)}
+            onChange={(e) => handleLanguageChange(e.target.value)}
             className="bg-transparent text-xs text-slate-900 focus:outline-none cursor-pointer font-bold"
           >
             {languages.map((lang) => (
@@ -170,7 +235,7 @@ export const Chat: React.FC = () => {
       {/* Quick Prompts Panel */}
       {messages.length === 1 && (
         <div className="p-3 bg-slate-50 border-t border-navy-light">
-          <p className="text-[9px] text-copper uppercase tracking-wider font-extrabold mb-2 px-1">Suggested Inquiries</p>
+          <p className="text-[9px] text-copper uppercase tracking-wider font-extrabold mb-2 px-1">{t('suggested_inquiries', language)}</p>
           <div className="flex flex-wrap gap-2">
             {quickPrompts.map((prompt, i) => (
               <button
@@ -191,7 +256,7 @@ export const Chat: React.FC = () => {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask SAATHI a banking query..."
+          placeholder={t('chat_placeholder', language)}
           className="flex-grow bg-white border border-navy-light text-slate-900 placeholder-slate-400 text-sm px-4 py-3 rounded-md focus:outline-none focus:border-gold/60 transition-all"
         />
         <button

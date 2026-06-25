@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Home, MessageSquare, Award, User } from 'lucide-react';
 import { fetchUserProfile, type UserProfile } from '../api';
 import saathiLogo from '../assets/saathi_logo.png';
+import { t } from '../utils/i18n';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -13,6 +14,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const userId = localStorage.getItem('saathi_user_id') || '';
+
+  const userRaw = localStorage.getItem('saathi_user');
+  const language = userRaw ? JSON.parse(userRaw).language : 'English';
 
   useEffect(() => {
     if (userId) {
@@ -25,7 +29,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const handleLogout = () => {
     localStorage.removeItem('saathi_user_id');
     localStorage.removeItem('saathi_user');
-    window.location.href = '/onboarding';
+    window.location.reload();
   };
 
   const getInitials = (name: string) => {
@@ -40,10 +44,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: Home },
-    { name: 'SAATHI Chat', path: '/chat', icon: MessageSquare },
-    { name: 'Offers', path: '/recommendations', icon: Award },
-    { name: 'Health Profile', path: '/profile', icon: User },
+    { name: t('home', language), path: '/', icon: Home },
+    { name: t('chat_saathi', language), path: '/chat', icon: MessageSquare },
+    { name: t('offers', language), path: '/recommendations', icon: Award },
+    { name: t('health_profile', language), path: '/profile', icon: User },
   ];
 
   return (
@@ -84,7 +88,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white border border-navy-light divide-y divide-gray-150 z-50 animate-fade-in">
                   <div className="px-4 py-3">
-                    <p className="text-[9px] text-copper font-extrabold uppercase tracking-wider">Companion Account</p>
+                    <p className="text-[9px] text-copper font-extrabold uppercase tracking-wider">{t('companion_account', language)}</p>
                     <p className="text-xs font-bold text-slate-900 truncate mt-1">{profile ? profile.name : 'SAATHI User'}</p>
                     <p className="text-[10px] text-slate-500 font-mono mt-0.5">{profile ? profile.phone : ''}</p>
                     <p className="text-[8px] text-slate-400 font-mono mt-0.5 truncate">{userId}</p>
@@ -94,7 +98,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                       onClick={handleLogout}
                       className="w-full text-left block px-4 py-2 text-xs text-red-600 hover:bg-red-50 font-bold transition-colors cursor-pointer border-none bg-transparent"
                     >
-                      Sign Out & Disconnect
+                      {t('sign_out', language)}
                     </button>
                   </div>
                 </div>
