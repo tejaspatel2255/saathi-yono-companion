@@ -16,7 +16,7 @@ def get_llm():
         raise ValueError("OPENROUTER_API_KEY is not set. Please check your environment variables.")
     
     return ChatOpenAI(
-        model="google/gemini-flash-1.5",
+        model="google/gemini-2.5-flash",
         openai_api_key=OPENROUTER_API_KEY,
         openai_api_base="https://openrouter.ai/api/v1",
         default_headers={

@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     
     # OpenRouter API configurations
     OPENROUTER_API_BASE: str = "https://openrouter.ai/api/v1"
-    OPENROUTER_MODEL: str = "google/gemini-flash-1.5"
+    OPENROUTER_MODEL: str = "google/gemini-2.5-flash"
     
     model_config = SettingsConfigDict(
         env_file=".env",

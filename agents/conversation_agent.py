@@ -11,7 +11,7 @@ logger = logging.getLogger("conversation_agent")
 class ConversationAgent:
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.getenv("OPENROUTER_API_KEY", "")
-        self.model_name = "google/gemini-flash-1.5"
+        self.model_name = "google/gemini-2.5-flash"
         self.api_base = "https://openrouter.ai/api/v1"
         
         if not self.api_key:
