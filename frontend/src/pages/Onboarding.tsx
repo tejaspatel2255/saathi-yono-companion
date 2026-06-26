@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import saathiLogo from '../assets/saathi_logo.png';
 import { registerUser, loginUser } from '../api';
-import { Shield, Sparkles, User, Phone, DollarSign, ArrowRight, Play } from 'lucide-react';
+import { Shield, User, Phone, DollarSign, ArrowRight, Play } from 'lucide-react';
 import { LANGUAGES } from '../utils/i18n';
 
 export const Onboarding: React.FC = () => {
