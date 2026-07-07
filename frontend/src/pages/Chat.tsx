@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { api } from '../api';
-import { Send, Globe } from 'lucide-react';
+import { Send, Globe, Volume2, VolumeX } from 'lucide-react';
 import { t } from '../utils/i18n';
 
 interface Message {
@@ -23,6 +23,60 @@ export const Chat: React.FC = () => {
   const [input, setInput] = useState('');
   const [language, setLanguage] = useState('en');
   const [isLoading, setIsLoading] = useState(false);
+  const [speakingIndex, setSpeakingIndex] = useState<number | null>(null);
+
+  // Stop any active speech on unmount
+  useEffect(() => {
+    return () => {
+      window.speechSynthesis.cancel();
+    };
+  }, []);
+
+  const speakMessage = (text: string, index: number) => {
+    if (speakingIndex === index) {
+      window.speechSynthesis.cancel();
+      setSpeakingIndex(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    // Map language code to Indian locales
+    const voiceLocaleMap: Record<string, string> = {
+      en: 'en-IN',
+      hi: 'hi-IN',
+      ta: 'ta-IN',
+      te: 'te-IN',
+      mr: 'mr-IN',
+      gu: 'gu-IN',
+      kn: 'kn-IN',
+      ml: 'ml-IN',
+      bn: 'bn-IN',
+      pa: 'pa-IN'
+    };
+
+    const cleanText = text.replace(/[*#_`]/g, ''); // Strip markdown syntax for cleaner speech
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = voiceLocaleMap[language] || 'en-IN';
+    
+    // Find matching system voice
+    const voices = window.speechSynthesis.getVoices();
+    const matchedVoice = voices.find(v => v.lang.startsWith(utterance.lang) || v.lang.includes(utterance.lang));
+    if (matchedVoice) {
+      utterance.voice = matchedVoice;
+    }
+
+    utterance.onend = () => {
+      setSpeakingIndex(null);
+    };
+
+    utterance.onerror = () => {
+      setSpeakingIndex(null);
+    };
+
+    setSpeakingIndex(index);
+    window.speechSynthesis.speak(utterance);
+  };
 
   useEffect(() => {
     if (userId) {
@@ -208,13 +262,29 @@ export const Chat: React.FC = () => {
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[80%] rounded-xl p-4 text-sm leading-relaxed ${
+              className={`max-w-[80%] rounded-xl p-4 text-sm leading-relaxed relative ${
                 msg.role === 'user'
                   ? 'bg-[#001F70] text-white font-bold rounded-tr-none shadow-sm'
-                  : 'bg-[#EAD1BB] text-slate-900 border border-[#D5A27A] rounded-tl-none shadow-sm font-bold'
+                  : 'bg-[#EAD1BB] text-slate-900 border border-[#D5A27A] rounded-tl-none shadow-sm font-bold pr-8'
               }`}
             >
               <p className="whitespace-pre-wrap">{msg.text}</p>
+              
+              {/* Speaker icon for assistant messages */}
+              {msg.role === 'assistant' && (
+                <button
+                  type="button"
+                  onClick={() => speakMessage(msg.text, index)}
+                  className="absolute right-2 bottom-2 p-1 hover:bg-gold/15 rounded text-gold transition-all cursor-pointer border-none"
+                  title="Speak message"
+                >
+                  {speakingIndex === index ? (
+                    <VolumeX className="w-4 h-4 text-red-650 animate-pulse" />
+                  ) : (
+                    <Volume2 className="w-4 h-4" />
+                  )}
+                </button>
+              )}
             </div>
           </div>
         ))}

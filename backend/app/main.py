@@ -526,7 +526,8 @@ async def post_chat(request: ChatRequest):
     ai_reply = conversation_agent.chat(
         user_message=request.message,
         history_list=history,
-        language=request.language
+        language=request.language,
+        user_id=request.user_id
     )
 
     # 4. Save the Assistant conversation message
