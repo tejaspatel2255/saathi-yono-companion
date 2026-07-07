@@ -194,10 +194,12 @@ async def register_user(request: UserRegisterRequest):
         rec_data_list = recommendation_agent.get_recommendations(user_record["financial_profile"])
         recs = []
         for i, rec in enumerate(rec_data_list[:3]):
+            prod_name = rec.get("product", "SBI Product")
+            reason_text = f"{rec.get('reason', '')} Benefit: {rec.get('benefit', '')}".strip() or "Highly suitable for your profile."
             rec_record = {
                 "user_id": user_id,
-                "product_type": rec.get("product_type", "SBI Product"),
-                "reason": rec.get("reason", "Highly suitable for your profile."),
+                "product_type": prod_name,
+                "reason": reason_text,
                 "score": float(rec.get("score", 0.85))
             }
             if supabase_client:
@@ -785,11 +787,13 @@ def get_recommendations(user_id: str):
         rec_data_list = recommendation_agent.get_recommendations(fp)
         recs = []
         for i, rec in enumerate(rec_data_list[:3]):
+            prod_name = rec.get("product", "SBI Product")
+            reason_text = f"{rec.get('reason', '')} Benefit: {rec.get('benefit', '')}".strip() or "Highly suitable for your profile."
             rec_record = {
                 "id": f"gen-rec-{i}",
                 "user_id": user_id,
-                "product_type": rec.get("product_type", "SBI Product"),
-                "reason": rec.get("reason", "Highly suitable for your profile."),
+                "product_type": prod_name,
+                "reason": reason_text,
                 "score": float(rec.get("score", 0.85)),
                 "shown_at": datetime.utcnow().isoformat()
             }

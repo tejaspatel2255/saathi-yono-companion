@@ -3,7 +3,7 @@ from typing import List, Dict, Any
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
-from langchain.agents import AgentExecutor, create_openai_tools_agent
+from langchain_classic.agents import AgentExecutor, create_openai_tools_agent
 
 # Local config import - since backend is running it can import or we can retrieve from env
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")

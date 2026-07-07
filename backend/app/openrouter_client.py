@@ -7,7 +7,7 @@ logger = logging.getLogger("saathi_openrouter")
 
 async def call_openrouter_chat(messages: List[Dict[str, str]], system_prompt: str) -> str:
     """
-    Calls the OpenRouter API using google/gemini-flash-1.5 with the provided messages and system prompt.
+    Calls the OpenRouter API using google/gemini-2.5-flash with the provided messages and system prompt.
     """
     if not settings.OPENROUTER_API_KEY:
         logger.error("OPENROUTER_API_KEY is not set.")

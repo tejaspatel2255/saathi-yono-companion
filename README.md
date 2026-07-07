@@ -1,7 +1,7 @@
 # SAATHI 🤝 (साथी)
 ### Premium Agentic AI Financial Companion for SBI YONO
 
-SAATHI is a state-of-the-art agentic AI financial companion designed to elevate the digital banking experience for SBI YONO users. Built using FastAPI (Python), LangChain, OpenRouter (Gemini-1.5-Flash), and React (TypeScript), SAATHI provides real-time multi-lingual financial chats, proactive budget nudges, and personalized SBI product matches based on sandbox transaction ledger simulations.
+SAATHI is a state-of-the-art agentic AI financial companion designed to elevate the digital banking experience for SBI YONO users. Built using FastAPI (Python), LangChain, OpenRouter (Gemini-2.5-Flash), and React (TypeScript), SAATHI provides real-time multi-lingual financial chats, proactive budget nudges, and personalized SBI product matches based on sandbox transaction ledger simulations.
 
 ---
 
@@ -63,7 +63,7 @@ SAATHI-SBI Hackathon/
 2. **`POST /users/login`**:
    - Authenticates the user based on normalized phone matching.
 3. **`POST /chat`**:
-   - Connects with `google/gemini-flash-1.5` to chat with the user in their preferred language.
+   - Connects with `google/gemini-2.5-flash` to chat with the user in their preferred language.
 4. **`GET /nudges/{user_id}`**:
    - Fetches pending nudges (unread). Fallbacks to dynamic agent generation if empty.
 5. **`POST /transactions/{user_id}`**:
