@@ -116,7 +116,7 @@ class ConversationAgent:
                 "X-Title": "SAATHI"
             },
             temperature=0.3,
-            max_tokens=1200
+            max_tokens=2048
         )
         
         self.tools = [get_user_balance, get_user_transactions, get_sbi_schemes_kb]
@@ -132,6 +132,7 @@ class ConversationAgent:
                 "- Use the user_id provided in the input context.\n"
                 "- Keep responses friendly, professional, clear, and highly focused on the Indian financial context (Rupees ₹).\n"
                 "- Never hallucinate balance amounts or transactions. If you cannot find them, explicitly state so.\n"
+                "- Be concise and direct. Keep your response brief (under 150 words) and structured. Avoid long essays. If listing items, keep them to 2-3 short bullet points.\n"
                 "- You must respond in the user's preferred language: {language_name}."
             )),
             MessagesPlaceholder(variable_name="history"),
@@ -145,8 +146,9 @@ class ConversationAgent:
                 "You are SAATHI, SBI's AI financial companion. "
                 "Help users with banking queries, suggest SBI products "
                 "(FD, loans, insurance, credit cards), and give "
-                "personalized financial advice. Be friendly, concise, "
+                "personalized financial advice. Be friendly, highly concise, "
                 "and respond in the same language the user writes in. "
+                "Keep responses brief, direct, and under 150 words. If listing items, keep them to 2-3 short bullet points. "
                 "Always mention specific SBI products with benefits. "
                 "Please respond in the user's preferred language: {language_name}."
             )),
