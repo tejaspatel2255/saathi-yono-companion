@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { api } from '../api';
-import { Send, Globe, Volume2, VolumeX } from 'lucide-react';
+import { Send, Globe, Volume2, VolumeX, Mic, MicOff } from 'lucide-react';
 import { t } from '../utils/i18n';
 
 interface Message {
@@ -24,6 +24,72 @@ export const Chat: React.FC = () => {
   const [language, setLanguage] = useState('en');
   const [isLoading, setIsLoading] = useState(false);
   const [speakingIndex, setSpeakingIndex] = useState<number | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  // Initialize Speech Recognition
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const rec = new SpeechRecognition();
+      rec.continuous = false;
+      rec.interimResults = false;
+      
+      const recognitionLocaleMap: Record<string, string> = {
+        en: 'en-IN',
+        hi: 'hi-IN',
+        ta: 'ta-IN',
+        te: 'te-IN',
+        mr: 'mr-IN',
+        gu: 'gu-IN',
+        kn: 'kn-IN',
+        ml: 'ml-IN',
+        bn: 'bn-IN',
+        pa: 'pa-IN'
+      };
+
+      rec.lang = recognitionLocaleMap[language] || 'en-IN';
+
+      rec.onstart = () => {
+        setIsListening(true);
+      };
+
+      rec.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+      };
+
+      rec.onerror = (err: any) => {
+        console.error('Speech recognition error:', err);
+        setIsListening(false);
+      };
+
+      rec.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = rec;
+    }
+  }, [language]);
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      alert('Speech recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      window.speechSynthesis.cancel(); // Stop assistant speaking when user starts talking
+      setSpeakingIndex(null);
+      try {
+        recognitionRef.current.start();
+      } catch (err) {
+        console.error('Failed to start speech recognition:', err);
+      }
+    }
+  };
 
   // Stop any active speech on unmount
   useEffect(() => {
@@ -322,6 +388,17 @@ export const Chat: React.FC = () => {
 
       {/* Chat input form */}
       <form onSubmit={handleFormSubmit} className="p-3 bg-slate-50 border-t border-navy-light flex items-center space-x-2">
+        <button
+          type="button"
+          onClick={toggleListening}
+          className={`p-3 rounded-md transition-all shadow-sm shrink-0 cursor-pointer border-none ${
+            isListening ? 'bg-red-500 hover:bg-red-650 text-white animate-pulse' : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+          }`}
+          title={isListening ? "Listening... Click to stop" : "Speak to SAATHI"}
+        >
+          {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+        </button>
+
         <input
           type="text"
           value={input}
