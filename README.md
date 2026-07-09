@@ -153,3 +153,21 @@ By default, the table schema in `database/schema.sql` enables Row-Level Security
    npm run dev
    ```
    *The frontend dashboard will start at http://localhost:5173/.*
+
+---
+
+## 🔒 Security & GitHub Safety Notes
+
+To ensure your application is pushed to GitHub safely and runs securely:
+
+1. **Environment Variables (`.env`)**:
+   - The `.env` file contains your private API credentials (`OPENROUTER_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`).
+   - **Never commit `.env` files to GitHub**. The `.gitignore` file is pre-configured to ignore `.env`, `backend/.env`, and `frontend/.env`.
+   - Always duplicate `.env.example` to create local `.env` files instead of checking them into git.
+
+2. **Supabase Row-Level Security (RLS)**:
+   - For hackathon sandbox demo purposes, the instructions in **Step 2** disable RLS to allow quick anonymous profile generation and transaction simulations.
+   - **For Production**: You must enable RLS and set up Supabase Auth policies to restrict database access per authenticated user.
+
+3. **Credential Rotation**:
+   - If any API key is accidentally pushed or leaked, revoke and regenerate it immediately via the OpenRouter Settings and Supabase Settings pages.

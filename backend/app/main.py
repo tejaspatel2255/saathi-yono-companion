@@ -11,6 +11,14 @@ from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
+# Fix Windows console encoding issues for emojis/Rupee symbol
+if sys.platform.startswith("win"):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='backslashreplace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='backslashreplace')
+    except Exception:
+        pass
+
 # Add parent directory of 'backend' to sys.path to access 'agents' folder
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 

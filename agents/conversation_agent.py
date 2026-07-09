@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 import json
 from typing import List, Dict, Optional
@@ -8,6 +9,14 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.tools import tool
 from langchain_classic.agents import AgentExecutor, create_openai_tools_agent
+
+# Fix Windows console encoding issues for emojis/Rupee symbol
+if sys.platform.startswith("win"):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='backslashreplace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='backslashreplace')
+    except Exception:
+        pass
 
 logger = logging.getLogger("conversation_agent")
 
@@ -197,6 +206,9 @@ class ConversationAgent:
         for msg in history_list:
             role = msg.get("role", "user")
             content = msg.get("message", "")
+            # Filter out error/fallback assistant replies to prevent prompt poisoning
+            if role == "assistant" and "difficulty responding" in content:
+                continue
             if role == "user":
                 langchain_history.append(HumanMessage(content=content))
             else:

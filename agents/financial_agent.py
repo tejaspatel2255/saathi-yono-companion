@@ -1,9 +1,18 @@
 import os
+import sys
 from typing import List, Dict, Any
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langchain_classic.agents import AgentExecutor, create_openai_tools_agent
+
+# Fix Windows console encoding issues for emojis/Rupee symbol
+if sys.platform.startswith("win"):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='backslashreplace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='backslashreplace')
+    except Exception:
+        pass
 
 # Local config import - since backend is running it can import or we can retrieve from env
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
